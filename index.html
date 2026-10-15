@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🩸 Cycle & Migraine Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e91e63">
+<link rel="apple-touch-icon" href="icon.svg">
 <style>
   :root {
     --bg: #fdf6f9;
@@ -15,6 +18,8 @@
     --text: #333;
     --muted: #888;
     --border: #f0e0e8;
+    --green: #4caf50;
+    --blue: #2196f3;
   }
   * { box-sizing: border-box; }
   body {
@@ -88,7 +93,6 @@
     color: var(--purple);
   }
 
-  /* Cycle picker */
   .cycle-btns {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -111,19 +115,6 @@
     transform: scale(1.02);
   }
 
-  /* Flow dots */
-  .flow-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
-  .flow-dot {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    border: 2px solid var(--pink);
-    background: white;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .flow-dot.active { background: var(--pink); }
-
-  /* Symptom chips */
   .chip-grid {
     display: flex;
     flex-wrap: wrap;
@@ -146,7 +137,6 @@
     border-color: var(--purple);
   }
 
-  /* Pain scale */
   .pain-scale {
     display: flex;
     gap: 4px;
@@ -169,7 +159,6 @@
     transform: scale(1.05);
   }
 
-  /* Water */
   .water-row {
     display: flex;
     gap: 6px;
@@ -184,7 +173,6 @@
   }
   .water-glass.active { opacity: 1; transform: scale(1.1); }
 
-  /* Sliders */
   input[type="range"] {
     width: 100%;
     accent-color: var(--pink);
@@ -197,8 +185,7 @@
     margin-bottom: 4px;
   }
 
-  /* Textarea */
-  textarea {
+  textarea, input[type="text"], input[type="password"] {
     width: 100%;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -209,9 +196,9 @@
     min-height: 60px;
     outline: none;
   }
-  textarea:focus { border-color: var(--pink); }
+  input[type="text"], input[type="password"] { min-height: 0; }
+  textarea:focus, input:focus { border-color: var(--pink); }
 
-  /* Save button */
   .save-btn {
     width: 100%;
     padding: 14px;
@@ -226,8 +213,15 @@
     box-shadow: 0 4px 12px rgba(233,30,99,0.3);
   }
   .save-btn:active { transform: scale(0.98); }
+  .save-btn.secondary {
+    background: white;
+    color: var(--purple);
+    border: 2px solid var(--purple-soft);
+    box-shadow: none;
+  }
+  .save-btn.blue { background: linear-gradient(135deg, #2196f3, #673ab7); }
+  .save-btn.green { background: linear-gradient(135deg, #4caf50, #2196f3); }
 
-  /* History */
   .hist-item {
     background: white;
     border-radius: 12px;
@@ -239,7 +233,6 @@
   .hist-item .date { font-weight: 600; color: var(--purple); margin-bottom: 4px; }
   .hist-item .tags { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
 
-  /* Insights */
   .stat-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -260,6 +253,153 @@
     padding: 24px;
     font-size: 0.9rem;
   }
+
+  /* Calendar */
+  .cal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .cal-nav {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  .cal-title { font-weight: 600; color: var(--purple); font-size: 1rem; }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day-label {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 4px 0;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    background: #fafafa;
+    color: var(--muted);
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent;
+  }
+  .cal-day.empty-day { background: transparent; cursor: default; }
+  .cal-day.today { border: 2px solid var(--purple); font-weight: 700; }
+  .cal-day.has-data { color: white; font-weight: 600; }
+  .cal-day .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 3px;
+  }
+  .cal-legend {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .cal-legend span { display: flex; align-items: center; gap: 4px; }
+  .cal-legend .swatch {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  /* Prediction cards */
+  .prediction {
+    background: linear-gradient(135deg, var(--pink-soft), var(--purple-soft));
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .prediction .pred-label {
+    font-size: 0.75rem;
+    color: var(--purple);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .prediction .pred-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 4px;
+  }
+  .prediction .pred-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Sync */
+  .sync-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #eee;
+    color: #666;
+  }
+  .sync-status.ok { background: #e8f5e9; color: var(--green); }
+  .sync-status.err { background: #ffebee; color: #c62828; }
+  .sync-status.syncing { background: #e3f2fd; color: var(--blue); }
+
+  .row-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  details { margin-top: 8px; }
+  details summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--purple);
+    font-weight: 600;
+    padding: 8px 0;
+  }
+  .hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 4px 0 8px;
+  }
+  .hint a { color: var(--purple); }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -271,8 +411,10 @@
 
 <div class="tabs">
   <div class="tab active" data-view="log">📝 Log</div>
+  <div class="tab" data-view="calendar">📆 Calendar</div>
   <div class="tab" data-view="history">📅 History</div>
   <div class="tab" data-view="insights">📊 Insights</div>
+  <div class="tab" data-view="sync">☁️ Sync</div>
 </div>
 
 <!-- LOG VIEW -->
@@ -342,17 +484,47 @@
   <button class="save-btn" id="saveBtn">💾 Save Today</button>
 </div>
 
+<!-- CALENDAR VIEW -->
+<div class="view" id="view-calendar">
+  <div class="card">
+    <div class="cal-header">
+      <button class="cal-nav" id="calPrev">◀</button>
+      <span class="cal-title" id="calTitle"></span>
+      <button class="cal-nav" id="calNext">▶</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <span><span class="swatch" style="background:#e91e63"></span> Period</span>
+      <span><span class="swatch" style="background:#f3e5f5;border:1px solid #9c27b0"></span> PMS / Fertile</span>
+      <span><span class="swatch" style="background:#673ab7"></span> Headache</span>
+      <span><span class="swatch" style="background:#9c27b0"></span> Both</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🔍 Legend details</h3>
+    <p class="hint">Tap any day to jump to it in the Log tab. Days with a small dot have water logged. Purple border = today.</p>
+  </div>
+</div>
+
 <!-- HISTORY VIEW -->
 <div class="view" id="view-history">
   <div class="card">
     <h3>📅 Recent Entries</h3>
     <div id="historyList"></div>
   </div>
-  <button class="save-btn" id="exportBtn" style="background:linear-gradient(135deg,#9c27b0,#673ab7)">📤 Export JSON</button>
+  <div class="row-btns">
+    <button class="save-btn green" id="exportBtn">📤 Export JSON</button>
+    <button class="save-btn secondary" id="importBtn">📥 Import JSON</button>
+  </div>
+  <input type="file" id="importFile" accept="application/json" style="display:none">
 </div>
 
 <!-- INSIGHTS VIEW -->
 <div class="view" id="view-insights">
+  <div class="card">
+    <h3>🔮 Predictions</h3>
+    <div id="predictions"></div>
+  </div>
   <div class="card">
     <h3>📊 Your Patterns</h3>
     <div class="stat-grid" id="statsGrid"></div>
@@ -367,8 +539,62 @@
   </div>
 </div>
 
+<!-- SYNC VIEW -->
+<div class="view" id="view-sync">
+  <div class="card">
+    <h3>☁️ GitHub Gist Sync</h3>
+    <p class="hint">Back up your data to a <strong>secret</strong> GitHub Gist and sync across devices. Your token stays in this browser only — it never leaves your device except to talk directly to api.github.com.</p>
+
+    <details>
+      <summary>📖 How to set this up (one time, 2 minutes)</summary>
+      <ol class="hint" style="padding-left:20px">
+        <li>Go to <a href="https://github.com/settings/tokens/new?scopes=gist&description=cycle-tracker" target="_blank">github.com/settings/tokens/new</a></li>
+        <li>Give it a name like "cycle-tracker"</li>
+        <li>Check the <strong>gist</strong> scope only</li>
+        <li>Click "Generate token" and copy it (starts with <code>ghp_</code>)</li>
+        <li>Paste it below and click Save Token</li>
+        <li>Click "Create new Gist" the first time, then "Push" / "Pull" as needed</li>
+      </ol>
+    </details>
+
+    <div style="margin-top:12px;">
+      <label class="hint" style="display:block;margin-bottom:4px;">Personal Access Token</label>
+      <input type="password" id="ghToken" placeholder="ghp_...">
+    </div>
+
+    <div style="margin-top:10px;">
+      <label class="hint" style="display:block;margin-bottom:4px;">Gist ID (auto-filled after creating)</label>
+      <input type="text" id="ghGistId" placeholder="e.g. a1b2c3d4e5f6...">
+    </div>
+
+    <div class="row-btns">
+      <button class="save-btn" id="saveTokenBtn">💾 Save Token</button>
+      <button class="save-btn secondary" id="createGistBtn">✨ Create new Gist</button>
+    </div>
+    <div class="row-btns">
+      <button class="save-btn blue" id="pushBtn">⬆️ Push to Gist</button>
+      <button class="save-btn blue" id="pullBtn">⬇️ Pull from Gist</button>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;">
+      <span class="sync-status" id="syncStatus">Not configured</span>
+    </div>
+    <div class="hint" id="syncInfo" style="text-align:center;margin-top:8px;"></div>
+  </div>
+
+  <div class="card">
+    <h3>🧹 Danger Zone</h3>
+    <p class="hint">Erase all local data on this device. Make sure you've pushed to Gist or exported JSON first!</p>
+    <button class="save-btn secondary" id="wipeBtn" style="color:#c62828;border-color:#ffcdd2;">🗑️ Wipe Local Data</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
 const STORAGE_KEY = 'cycleMigraineTracker';
+const TOKEN_KEY = 'cycleMigraineTracker_token';
+const GIST_KEY = 'cycleMigraineTracker_gistId';
 const today = new Date().toISOString().slice(0,10);
 
 // ---------- DATA ----------
@@ -386,11 +612,20 @@ const HEAD_SYMPTOMS = ['Nausea','Aura','Light sensitivity','Sound sensitivity','
 const HEAD_TRIGGERS = ['Stress','Poor sleep','Skipped meal','Dehydration','Caffeine','Alcohol','Weather','Screen time','Hormones','Chocolate','Strong smell','Loud noise'];
 const CRAVINGS = ['Sweet','Salty','Chocolate','Carbs','Dairy','Spicy','Coffee','Fruit','None'];
 
+// ---------- TOAST ----------
+let toastTimer;
+function toast(msg, ms=2000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
 // ---------- INIT ----------
 document.getElementById('todayLabel').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
 document.getElementById('dayHeader').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-// Build pain scale
 const painScale = document.getElementById('painScale');
 for (let i = 0; i <= 10; i++) {
   const b = document.createElement('button');
@@ -401,7 +636,6 @@ for (let i = 0; i <= 10; i++) {
   painScale.appendChild(b);
 }
 
-// Build chip sets
 function buildChips(containerId, list, key) {
   const el = document.getElementById(containerId);
   list.forEach(item => {
@@ -423,7 +657,6 @@ buildChips('headSymptoms', HEAD_SYMPTOMS, 'headSymptoms');
 buildChips('headTriggers', HEAD_TRIGGERS, 'headTriggers');
 buildChips('cravings', CRAVINGS, 'cravings');
 
-// Water
 const waterRow = document.getElementById('waterRow');
 for (let i = 0; i < 8; i++) {
   const g = document.createElement('span');
@@ -436,7 +669,6 @@ for (let i = 0; i < 8; i++) {
   waterRow.appendChild(g);
 }
 
-// Sliders
 ['cramps','mood','energy','sleep'].forEach(id => {
   const el = document.getElementById(id);
   el.oninput = () => {
@@ -448,7 +680,6 @@ for (let i = 0; i < 8; i++) {
 document.getElementById('meds').oninput = e => entry.meds = e.target.value;
 document.getElementById('notes').oninput = e => entry.notes = e.target.value;
 
-// Cycle buttons
 document.querySelectorAll('.cycle-btn').forEach(b => {
   b.onclick = () => {
     entry.cycle = b.dataset.cycle;
@@ -466,7 +697,6 @@ function updatePain() {
     const p = +b.dataset.pain;
     b.classList.toggle('active', p === entry.pain);
     if (p === entry.pain) {
-      // gradient green→red
       const hue = 120 - (p * 12);
       b.style.background = `hsl(${hue},70%,55%)`;
     } else {
@@ -507,6 +737,8 @@ document.getElementById('saveBtn').onclick = () => {
   setTimeout(() => btn.textContent = '💾 Save Today', 1500);
   renderHistory();
   renderInsights();
+  renderCalendar();
+  toast('Saved!');
 };
 
 // ---------- HISTORY ----------
@@ -538,8 +770,6 @@ function renderInsights() {
   const headacheDays = days.filter(d => d.pain > 0).length;
   const periodDays = days.filter(d => ['light','medium','heavy','spotting'].includes(d.cycle)).length;
   const avgWater = days.length ? (days.reduce((s,d)=>s+d.water,0)/days.length).toFixed(1) : 0;
-  const avgPain = days.filter(d=>d.pain>0).length
-    ? (days.filter(d=>d.pain>0).reduce((s,d)=>s+d.pain,0)/headacheDays).toFixed(1) : 0;
 
   grid.innerHTML = `
     <div class="stat"><div class="num">${days.length}</div><div class="label">Days logged</div></div>
@@ -548,7 +778,6 @@ function renderInsights() {
     <div class="stat"><div class="num">${avgWater}</div><div class="label">Avg 💧/day</div></div>
   `;
 
-  // Top triggers
   const trigCount = {};
   days.forEach(d => d.headTriggers.forEach(t => trigCount[t] = (trigCount[t]||0)+1));
   const top = Object.entries(trigCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -556,7 +785,6 @@ function renderInsights() {
     ? top.map(([t,c]) => `<div class="hist-item"><div class="date">${t}</div><div class="tags">${c} time${c>1?'s':''}</div></div>`).join('')
     : '<div class="empty">Log some headaches first</div>';
 
-  // Cycle correlation
   let headacheOnPeriod = 0, headachesTotal = 0;
   days.forEach(d => {
     if (d.pain > 0) {
@@ -574,31 +802,26 @@ function renderInsights() {
   } else {
     corr.innerHTML = '<div class="empty">Need more data (3+ headache days)</div>';
   }
+
+  renderPredictions();
 }
 
-// ---------- EXPORT ----------
-document.getElementById('exportBtn').onclick = () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `cycle-migraine-export-${today}.json`;
-  a.click();
-};
+// ---------- PREDICTIONS ----------
+function renderPredictions() {
+  const el = document.getElementById('predictions');
+  const days = Object.keys(data).sort();
 
-// ---------- TABS ----------
-document.querySelectorAll('.tab').forEach(t => {
-  t.onclick = () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    document.getElementById('view-' + t.dataset.view).classList.add('active');
-    if (t.dataset.view === 'history') renderHistory();
-    if (t.dataset.view === 'insights') renderInsights();
-  };
-});
+  // Find period start days (light/medium/heavy/spotting)
+  const periodDays = days.filter(d =>
+    ['light','medium','heavy','spotting'].includes(data[d].cycle));
 
-renderHistory();
-renderInsights();
-</script>
-</body>
-</html>
+  if (periodDays.length < 2) {
+    el.innerHTML = '<div class="empty">Log at least 2 period days to see predictions 🌸</div>';
+    return;
+  }
+
+  // Group consecutive period days into "cycles" — a cycle starts when there's a gap
+  const periods = [];
+  let current = [periodDays[0]];
+  for (let i = 1; i < periodDays.length; i++) {
+    const prev = new Date(periodDays[i
