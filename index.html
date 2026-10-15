@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🩸 Cycle & Migraine Tracker</title>
+<style>
+  :root {
+    --bg: #fdf6f9;
+    --card: #ffffff;
+    --pink: #e91e63;
+    --pink-soft: #fce4ec;
+    --purple: #9c27b0;
+    --purple-soft: #f3e5f5;
+    --text: #333;
+    --muted: #888;
+    --border: #f0e0e8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding-bottom: 80px;
+  }
+  header {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 20px rgba(233,30,99,0.2);
+  }
+  header h1 { margin: 0; font-size: 1.4rem; }
+  header p { margin: 4px 0 0; opacity: 0.9; font-size: 0.85rem; }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--pink);
+    color: white;
+    border-color: var(--pink);
+  }
+
+  .view { padding: 0 16px; display: none; }
+  .view.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+  }
+  .card h3 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .day-header {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: var(--purple);
+  }
+
+  /* Cycle picker */
+  .cycle-btns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .cycle-btn {
+    padding: 12px 4px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: var(--pink-soft);
+    color: var(--pink);
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .cycle-btn.active {
+    background: var(--pink);
+    color: white;
+    transform: scale(1.02);
+  }
+
+  /* Flow dots */
+  .flow-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+  .flow-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--pink);
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .flow-dot.active { background: var(--pink); }
+
+  /* Symptom chips */
+  .chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: var(--purple-soft);
+    color: var(--purple);
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip.active {
+    background: var(--purple);
+    color: white;
+    border-color: var(--purple);
+  }
+
+  /* Pain scale */
+  .pain-scale {
+    display: flex;
+    gap: 4px;
+    justify-content: space-between;
+  }
+  .pain-btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: none;
+    background: #f5f5f5;
+    color: #666;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+  .pain-btn.active {
+    color: white;
+    transform: scale(1.05);
+  }
+
+  /* Water */
+  .water-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .water-glass {
+    font-size: 1.8rem;
+    cursor: pointer;
+    opacity: 0.25;
+    transition: all 0.15s;
+  }
+  .water-glass.active { opacity: 1; transform: scale(1.1); }
+
+  /* Sliders */
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--pink);
+  }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  /* Textarea */
+  textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+  }
+  textarea:focus { border-color: var(--pink); }
+
+  /* Save button */
+  .save-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(233,30,99,0.3);
+  }
+  .save-btn:active { transform: scale(0.98); }
+
+  /* History */
+  .hist-item {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid var(--pink);
+    font-size: 0.85rem;
+  }
+  .hist-item .date { font-weight: 600; color: var(--purple); margin-bottom: 4px; }
+  .hist-item .tags { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
+
+  /* Insights */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .stat {
+    background: var(--pink-soft);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat .num { font-size: 1.5rem; font-weight: 700; color: var(--pink); }
+  .stat .label { font-size: 0.75rem; color: var(--muted); }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 24px;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🩸 Cycle & Migraine Tracker</h1>
+  <p id="todayLabel"></p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-view="log">📝 Log</div>
+  <div class="tab" data-view="history">📅 History</div>
+  <div class="tab" data-view="insights">📊 Insights</div>
+</div>
+
+<!-- LOG VIEW -->
+<div class="view active" id="view-log">
+  <div class="day-header" id="dayHeader"></div>
+
+  <div class="card">
+    <h3>🩸 Cycle</h3>
+    <div class="cycle-btns" id="cycleBtns">
+      <button class="cycle-btn" data-cycle="none">None</button>
+      <button class="cycle-btn" data-cycle="spotting">Spotting</button>
+      <button class="cycle-btn" data-cycle="light">Light</button>
+      <button class="cycle-btn" data-cycle="medium">Medium</button>
+      <button class="cycle-btn" data-cycle="heavy">Heavy</button>
+      <button class="cycle-btn" data-cycle="pms">PMS</button>
+      <button class="cycle-btn" data-cycle="ovulation">Ovulation</button>
+      <button class="cycle-btn" data-cycle="fertile">Fertile</button>
+    </div>
+    <div class="slider-label" style="margin-top:14px"><span>Cramps</span><span id="crampsVal">0</span></div>
+    <input type="range" id="cramps" min="0" max="10" value="0">
+  </div>
+
+  <div class="card">
+    <h3>🤕 Headache / Migraine</h3>
+    <div class="slider-label"><span>Pain intensity</span><span id="painVal">0</span></div>
+    <div class="pain-scale" id="painScale"></div>
+
+    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Location</div>
+    <div class="chip-grid" id="headLocations"></div>
+
+    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Symptoms</div>
+    <div class="chip-grid" id="headSymptoms"></div>
+
+    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Triggers</div>
+    <div class="chip-grid" id="headTriggers"></div>
+
+    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Medication taken</div>
+    <textarea id="meds" placeholder="e.g. 400mg ibuprofen at 2pm..."></textarea>
+  </div>
+
+  <div class="card">
+    <h3>💧 Water</h3>
+    <div class="water-row" id="waterRow"></div>
+    <div style="text-align:center; font-size:0.85rem; color:var(--muted); margin-top:6px;" id="waterLabel">0 / 8 glasses</div>
+  </div>
+
+  <div class="card">
+    <h3>🍫 Cravings & Food</h3>
+    <div class="chip-grid" id="cravings"></div>
+  </div>
+
+  <div class="card">
+    <h3>😊 Mood & Energy</h3>
+    <div class="slider-label"><span>Mood</span><span id="moodVal">5</span></div>
+    <input type="range" id="mood" min="0" max="10" value="5">
+    <div class="slider-label" style="margin-top:12px"><span>Energy</span><span id="energyVal">5</span></div>
+    <input type="range" id="energy" min="0" max="10" value="5">
+    <div class="slider-label" style="margin-top:12px"><span>Sleep quality</span><span id="sleepVal">5</span></div>
+    <input type="range" id="sleep" min="0" max="10" value="5">
+  </div>
+
+  <div class="card">
+    <h3>📝 Notes</h3>
+    <textarea id="notes" placeholder="Anything else? Stress, weather, big events..."></textarea>
+  </div>
+
+  <button class="save-btn" id="saveBtn">💾 Save Today</button>
+</div>
+
+<!-- HISTORY VIEW -->
+<div class="view" id="view-history">
+  <div class="card">
+    <h3>📅 Recent Entries</h3>
+    <div id="historyList"></div>
+  </div>
+  <button class="save-btn" id="exportBtn" style="background:linear-gradient(135deg,#9c27b0,#673ab7)">📤 Export JSON</button>
+</div>
+
+<!-- INSIGHTS VIEW -->
+<div class="view" id="view-insights">
+  <div class="card">
+    <h3>📊 Your Patterns</h3>
+    <div class="stat-grid" id="statsGrid"></div>
+  </div>
+  <div class="card">
+    <h3>🔍 Migraine Triggers (top 5)</h3>
+    <div id="topTriggers" class="empty">Log some headaches first</div>
+  </div>
+  <div class="card">
+    <h3>🩸 Cycle vs Headache</h3>
+    <div id="cycleCorrelation" class="empty">Need more data</div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'cycleMigraineTracker';
+const today = new Date().toISOString().slice(0,10);
+
+// ---------- DATA ----------
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let entry = data[today] || {
+  cycle: 'none', cramps: 0, pain: 0,
+  headLocations: [], headSymptoms: [], headTriggers: [],
+  meds: '', water: 0, cravings: [],
+  mood: 5, energy: 5, sleep: 5, notes: ''
+};
+
+// ---------- CONSTANTS ----------
+const HEAD_LOCATIONS = ['Front','Back','Left','Right','Behind eyes','Temples','Neck','Whole head'];
+const HEAD_SYMPTOMS = ['Nausea','Aura','Light sensitivity','Sound sensitivity','Dizziness','Vomiting','Fatigue','Blurred vision'];
+const HEAD_TRIGGERS = ['Stress','Poor sleep','Skipped meal','Dehydration','Caffeine','Alcohol','Weather','Screen time','Hormones','Chocolate','Strong smell','Loud noise'];
+const CRAVINGS = ['Sweet','Salty','Chocolate','Carbs','Dairy','Spicy','Coffee','Fruit','None'];
+
+// ---------- INIT ----------
+document.getElementById('todayLabel').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
+document.getElementById('dayHeader').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// Build pain scale
+const painScale = document.getElementById('painScale');
+for (let i = 0; i <= 10; i++) {
+  const b = document.createElement('button');
+  b.className = 'pain-btn';
+  b.textContent = i;
+  b.dataset.pain = i;
+  b.onclick = () => { entry.pain = i; updatePain(); };
+  painScale.appendChild(b);
+}
+
+// Build chip sets
+function buildChips(containerId, list, key) {
+  const el = document.getElementById(containerId);
+  list.forEach(item => {
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.textContent = item;
+    c.dataset.val = item;
+    c.onclick = () => {
+      const arr = entry[key];
+      const i = arr.indexOf(item);
+      if (i >= 0) arr.splice(i,1); else arr.push(item);
+      c.classList.toggle('active');
+    };
+    el.appendChild(c);
+  });
+}
+buildChips('headLocations', HEAD_LOCATIONS, 'headLocations');
+buildChips('headSymptoms', HEAD_SYMPTOMS, 'headSymptoms');
+buildChips('headTriggers', HEAD_TRIGGERS, 'headTriggers');
+buildChips('cravings', CRAVINGS, 'cravings');
+
+// Water
+const waterRow = document.getElementById('waterRow');
+for (let i = 0; i < 8; i++) {
+  const g = document.createElement('span');
+  g.className = 'water-glass';
+  g.textContent = '💧';
+  g.onclick = () => {
+    entry.water = (entry.water === i+1) ? i : i+1;
+    updateWater();
+  };
+  waterRow.appendChild(g);
+}
+
+// Sliders
+['cramps','mood','energy','sleep'].forEach(id => {
+  const el = document.getElementById(id);
+  el.oninput = () => {
+    entry[id] = +el.value;
+    document.getElementById(id + 'Val').textContent = el.value;
+  };
+});
+
+document.getElementById('meds').oninput = e => entry.meds = e.target.value;
+document.getElementById('notes').oninput = e => entry.notes = e.target.value;
+
+// Cycle buttons
+document.querySelectorAll('.cycle-btn').forEach(b => {
+  b.onclick = () => {
+    entry.cycle = b.dataset.cycle;
+    updateCycle();
+  };
+});
+
+// ---------- RENDER ----------
+function updateCycle() {
+  document.querySelectorAll('.cycle-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.cycle === entry.cycle));
+}
+function updatePain() {
+  document.querySelectorAll('.pain-btn').forEach(b => {
+    const p = +b.dataset.pain;
+    b.classList.toggle('active', p === entry.pain);
+    if (p === entry.pain) {
+      // gradient green→red
+      const hue = 120 - (p * 12);
+      b.style.background = `hsl(${hue},70%,55%)`;
+    } else {
+      b.style.background = '#f5f5f5';
+    }
+  });
+  document.getElementById('painVal').textContent = entry.pain;
+}
+function updateWater() {
+  document.querySelectorAll('.water-glass').forEach((g, i) =>
+    g.classList.toggle('active', i < entry.water));
+  document.getElementById('waterLabel').textContent = `${entry.water} / 8 glasses`;
+}
+function loadChips() {
+  ['headLocations','headSymptoms','headTriggers','cravings'].forEach(key => {
+    const container = document.getElementById(key);
+    container.querySelectorAll('.chip').forEach(c =>
+      c.classList.toggle('active', entry[key].includes(c.dataset.val)));
+  });
+}
+function loadAll() {
+  updateCycle(); updatePain(); updateWater(); loadChips();
+  ['cramps','mood','energy','sleep'].forEach(id => {
+    document.getElementById(id).value = entry[id];
+    document.getElementById(id + 'Val').textContent = entry[id];
+  });
+  document.getElementById('meds').value = entry.meds;
+  document.getElementById('notes').value = entry.notes;
+}
+loadAll();
+
+// ---------- SAVE ----------
+document.getElementById('saveBtn').onclick = () => {
+  data[today] = entry;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '✅ Saved!';
+  setTimeout(() => btn.textContent = '💾 Save Today', 1500);
+  renderHistory();
+  renderInsights();
+};
+
+// ---------- HISTORY ----------
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const days = Object.keys(data).sort().reverse();
+  if (!days.length) { list.innerHTML = '<div class="empty">No entries yet</div>'; return; }
+  list.innerHTML = days.map(d => {
+    const e = data[d];
+    const bits = [];
+    if (e.cycle !== 'none') bits.push(`🩸 ${e.cycle}`);
+    if (e.cramps > 0) bits.push(`cramps ${e.cramps}/10`);
+    if (e.pain > 0) bits.push(`🤕 pain ${e.pain}/10`);
+    if (e.water) bits.push(`💧 ${e.water}`);
+    if (e.cravings.length) bits.push(`🍫 ${e.cravings.join(', ')}`);
+    if (e.headTriggers.length) bits.push(`⚡ ${e.headTriggers.join(', ')}`);
+    if (e.mood !== 5) bits.push(`mood ${e.mood}`);
+    return `<div class="hist-item">
+      <div class="date">${new Date(d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div>
+      <div class="tags">${bits.join(' • ') || 'No notable data'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- INSIGHTS ----------
+function renderInsights() {
+  const days = Object.values(data);
+  const grid = document.getElementById('statsGrid');
+  const headacheDays = days.filter(d => d.pain > 0).length;
+  const periodDays = days.filter(d => ['light','medium','heavy','spotting'].includes(d.cycle)).length;
+  const avgWater = days.length ? (days.reduce((s,d)=>s+d.water,0)/days.length).toFixed(1) : 0;
+  const avgPain = days.filter(d=>d.pain>0).length
+    ? (days.filter(d=>d.pain>0).reduce((s,d)=>s+d.pain,0)/headacheDays).toFixed(1) : 0;
+
+  grid.innerHTML = `
+    <div class="stat"><div class="num">${days.length}</div><div class="label">Days logged</div></div>
+    <div class="stat"><div class="num">${headacheDays}</div><div class="label">Headache days</div></div>
+    <div class="stat"><div class="num">${periodDays}</div><div class="label">Period days</div></div>
+    <div class="stat"><div class="num">${avgWater}</div><div class="label">Avg 💧/day</div></div>
+  `;
+
+  // Top triggers
+  const trigCount = {};
+  days.forEach(d => d.headTriggers.forEach(t => trigCount[t] = (trigCount[t]||0)+1));
+  const top = Object.entries(trigCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('topTriggers').innerHTML = top.length
+    ? top.map(([t,c]) => `<div class="hist-item"><div class="date">${t}</div><div class="tags">${c} time${c>1?'s':''}</div></div>`).join('')
+    : '<div class="empty">Log some headaches first</div>';
+
+  // Cycle correlation
+  let headacheOnPeriod = 0, headachesTotal = 0;
+  days.forEach(d => {
+    if (d.pain > 0) {
+      headachesTotal++;
+      if (['light','medium','heavy','spotting','pms'].includes(d.cycle)) headacheOnPeriod++;
+    }
+  });
+  const corr = document.getElementById('cycleCorrelation');
+  if (headachesTotal >= 3) {
+    const pct = Math.round((headacheOnPeriod/headachesTotal)*100);
+    corr.innerHTML = `<div style="text-align:center;padding:12px;">
+      <div style="font-size:2rem;font-weight:700;color:var(--pink)">${pct}%</div>
+      <div style="color:var(--muted);font-size:0.85rem;">of your headaches happened during period/PMS</div>
+    </div>`;
+  } else {
+    corr.innerHTML = '<div class="empty">Need more data (3+ headache days)</div>';
+  }
+}
+
+// ---------- EXPORT ----------
+document.getElementById('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cycle-migraine-export-${today}.json`;
+  a.click();
+};
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('view-' + t.dataset.view).classList.add('active');
+    if (t.dataset.view === 'history') renderHistory();
+    if (t.dataset.view === 'insights') renderInsights();
+  };
+});
+
+renderHistory();
+renderInsights();
+</script>
+</body>
+</html>
