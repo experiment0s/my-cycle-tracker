@@ -8,398 +8,79 @@
 <meta name="theme-color" content="#e91e63">
 <link rel="apple-touch-icon" href="icon.svg">
 <style>
-  :root {
-    --bg: #fdf6f9;
-    --card: #ffffff;
-    --pink: #e91e63;
-    --pink-soft: #fce4ec;
-    --purple: #9c27b0;
-    --purple-soft: #f3e5f5;
-    --text: #333;
-    --muted: #888;
-    --border: #f0e0e8;
-    --green: #4caf50;
-    --blue: #2196f3;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding-bottom: 80px;
-  }
-  header {
-    background: linear-gradient(135deg, var(--pink), var(--purple));
-    color: white;
-    padding: 20px;
-    text-align: center;
-    border-radius: 0 0 24px 24px;
-    box-shadow: 0 4px 20px rgba(233,30,99,0.2);
-  }
-  header h1 { margin: 0; font-size: 1.4rem; }
-  header p { margin: 4px 0 0; opacity: 0.9; font-size: 0.85rem; }
-
-  .tabs {
-    display: flex;
-    gap: 8px;
-    padding: 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    padding: 8px 16px;
-    border-radius: 20px;
-    background: white;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    cursor: pointer;
-    white-space: nowrap;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-  .tab.active {
-    background: var(--pink);
-    color: white;
-    border-color: var(--pink);
-  }
-
-  .view { padding: 0 16px; display: none; }
-  .view.active { display: block; }
-
-  .card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    border: 1px solid var(--border);
-  }
-  .card h3 {
-    margin: 0 0 12px;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .day-header {
-    text-align: center;
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin: 16px 0 8px;
-    color: var(--purple);
-  }
-
-  .cycle-btns {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-  .cycle-btn {
-    padding: 12px 4px;
-    border-radius: 12px;
-    border: 2px solid transparent;
-    background: var(--pink-soft);
-    color: var(--pink);
-    font-weight: 600;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .cycle-btn.active {
-    background: var(--pink);
-    color: white;
-    transform: scale(1.02);
-  }
-
-  .chip-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .chip {
-    padding: 8px 14px;
-    border-radius: 20px;
-    background: var(--purple-soft);
-    color: var(--purple);
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.15s;
-    user-select: none;
-  }
-  .chip.active {
-    background: var(--purple);
-    color: white;
-    border-color: var(--purple);
-  }
-
-  .pain-scale {
-    display: flex;
-    gap: 4px;
-    justify-content: space-between;
-  }
-  .pain-btn {
-    flex: 1;
-    padding: 10px 0;
-    border-radius: 8px;
-    border: none;
-    background: #f5f5f5;
-    color: #666;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.15s;
-  }
-  .pain-btn.active {
-    color: white;
-    transform: scale(1.05);
-  }
-
-  .water-row {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .water-glass {
-    font-size: 1.8rem;
-    cursor: pointer;
-    opacity: 0.25;
-    transition: all 0.15s;
-  }
-  .water-glass.active { opacity: 1; transform: scale(1.1); }
-
-  input[type="range"] {
-    width: 100%;
-    accent-color: var(--pink);
-  }
-  .slider-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-
-  textarea, input[type="text"], input[type="password"] {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px;
-    font-family: inherit;
-    font-size: 0.9rem;
-    resize: vertical;
-    min-height: 60px;
-    outline: none;
-  }
-  input[type="text"], input[type="password"] { min-height: 0; }
-  textarea:focus, input:focus { border-color: var(--pink); }
-
-  .save-btn {
-    width: 100%;
-    padding: 14px;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(135deg, var(--pink), var(--purple));
-    color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    box-shadow: 0 4px 12px rgba(233,30,99,0.3);
-  }
-  .save-btn:active { transform: scale(0.98); }
-  .save-btn.secondary {
-    background: white;
-    color: var(--purple);
-    border: 2px solid var(--purple-soft);
-    box-shadow: none;
-  }
-  .save-btn.blue { background: linear-gradient(135deg, #2196f3, #673ab7); }
-  .save-btn.green { background: linear-gradient(135deg, #4caf50, #2196f3); }
-
-  .hist-item {
-    background: white;
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 8px;
-    border-left: 4px solid var(--pink);
-    font-size: 0.85rem;
-  }
-  .hist-item .date { font-weight: 600; color: var(--purple); margin-bottom: 4px; }
-  .hist-item .tags { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
-
-  .stat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .stat {
-    background: var(--pink-soft);
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-  }
-  .stat .num { font-size: 1.5rem; font-weight: 700; color: var(--pink); }
-  .stat .label { font-size: 0.75rem; color: var(--muted); }
-
-  .empty {
-    text-align: center;
-    color: var(--muted);
-    padding: 24px;
-    font-size: 0.9rem;
-  }
-
-  /* Calendar */
-  .cal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .cal-nav {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 4px 12px;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  .cal-title { font-weight: 600; color: var(--purple); font-size: 1rem; }
-  .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-  }
-  .cal-day-label {
-    text-align: center;
-    font-size: 0.7rem;
-    color: var(--muted);
-    font-weight: 600;
-    padding: 4px 0;
-  }
-  .cal-day {
-    aspect-ratio: 1;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    background: #fafafa;
-    color: var(--muted);
-    cursor: pointer;
-    position: relative;
-    border: 1px solid transparent;
-  }
-  .cal-day.empty-day { background: transparent; cursor: default; }
-  .cal-day.today { border: 2px solid var(--purple); font-weight: 700; }
-  .cal-day.has-data { color: white; font-weight: 600; }
-  .cal-day .dot {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    position: absolute;
-    bottom: 3px;
-  }
-  .cal-legend {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 12px;
-    font-size: 0.75rem;
-    color: var(--muted);
-    flex-wrap: wrap;
-  }
-  .cal-legend span { display: flex; align-items: center; gap: 4px; }
-  .cal-legend .swatch {
-    width: 12px; height: 12px;
-    border-radius: 3px;
-    display: inline-block;
-  }
-
-  /* Prediction cards */
-  .prediction {
-    background: linear-gradient(135deg, var(--pink-soft), var(--purple-soft));
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 10px;
-  }
-  .prediction .pred-label {
-    font-size: 0.75rem;
-    color: var(--purple);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .prediction .pred-value {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-top: 4px;
-  }
-  .prediction .pred-sub {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  /* Sync */
-  .sync-status {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: #eee;
-    color: #666;
-  }
-  .sync-status.ok { background: #e8f5e9; color: var(--green); }
-  .sync-status.err { background: #ffebee; color: #c62828; }
-  .sync-status.syncing { background: #e3f2fd; color: var(--blue); }
-
-  .row-btns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 8px;
-  }
-
-  details { margin-top: 8px; }
-  details summary {
-    cursor: pointer;
-    font-size: 0.85rem;
-    color: var(--purple);
-    font-weight: 600;
-    padding: 8px 0;
-  }
-  .hint {
-    font-size: 0.75rem;
-    color: var(--muted);
-    line-height: 1.5;
-    margin: 4px 0 8px;
-  }
-  .hint a { color: var(--purple); }
-
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.85);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; }
+:root{--bg:#fdf6f9;--card:#fff;--pink:#e91e63;--pink-soft:#fce4ec;--purple:#9c27b0;--purple-soft:#f3e5f5;--text:#333;--muted:#888;--border:#f0e0e8;--green:#4caf50;--blue:#2196f3}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);padding-bottom:80px}
+header{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;padding:20px;text-align:center;border-radius:0 0 24px 24px;box-shadow:0 4px 20px rgba(233,30,99,.2)}
+header h1{margin:0;font-size:1.4rem}
+header p{margin:4px 0 0;opacity:.9;font-size:.85rem}
+.tabs{display:flex;gap:8px;padding:16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;font-size:.9rem;font-weight:500;transition:all .2s}
+.tab.active{background:var(--pink);color:#fff;border-color:var(--pink)}
+.view{padding:0 16px;display:none}
+.view.active{display:block}
+.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid var(--border)}
+.card h3{margin:0 0 12px;font-size:1rem;display:flex;align-items:center;gap:8px}
+.day-header{text-align:center;font-size:1.3rem;font-weight:600;margin:16px 0 8px;color:var(--purple)}
+.cycle-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cycle-btn{padding:12px 4px;border-radius:12px;border:2px solid transparent;background:var(--pink-soft);color:var(--pink);font-weight:600;font-size:.8rem;cursor:pointer;transition:all .2s}
+.cycle-btn.active{background:var(--pink);color:#fff;transform:scale(1.02)}
+.chip-grid{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 14px;border-radius:20px;background:var(--purple-soft);color:var(--purple);border:2px solid transparent;cursor:pointer;font-size:.85rem;transition:all .15s;user-select:none}
+.chip.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.pain-scale{display:flex;gap:4px;justify-content:space-between}
+.pain-btn{flex:1;padding:10px 0;border-radius:8px;border:none;background:#f5f5f5;color:#666;cursor:pointer;font-weight:600;font-size:.9rem;transition:all .15s}
+.pain-btn.active{color:#fff;transform:scale(1.05)}
+.water-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.water-glass{font-size:1.8rem;cursor:pointer;opacity:.25;transition:all .15s}
+.water-glass.active{opacity:1;transform:scale(1.1)}
+input[type="range"]{width:100%;accent-color:var(--pink)}
+.slider-label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+textarea,input[type="text"],input[type="password"]{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:60px;outline:none}
+input[type="text"],input[type="password"]{min-height:0}
+textarea:focus,input:focus{border-color:var(--pink)}
+.save-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px;box-shadow:0 4px 12px rgba(233,30,99,.3)}
+.save-btn:active{transform:scale(.98)}
+.save-btn.secondary{background:#fff;color:var(--purple);border:2px solid var(--purple-soft);box-shadow:none}
+.save-btn.blue{background:linear-gradient(135deg,#2196f3,#673ab7)}
+.save-btn.green{background:linear-gradient(135deg,#4caf50,#2196f3)}
+.hist-item{background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid var(--pink);font-size:.85rem}
+.hist-item .date{font-weight:600;color:var(--purple);margin-bottom:4px}
+.hist-item .tags{color:var(--muted);font-size:.8rem;line-height:1.4}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--pink-soft);border-radius:12px;padding:12px;text-align:center}
+.stat .num{font-size:1.5rem;font-weight:700;color:var(--pink)}
+.stat .label{font-size:.75rem;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:24px;font-size:.9rem}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-nav{background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px 12px;cursor:pointer;font-size:1rem}
+.cal-title{font-weight:600;color:var(--purple);font-size:1rem}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day-label{text-align:center;font-size:.7rem;color:var(--muted);font-weight:600;padding:4px 0}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.75rem;background:#fafafa;color:var(--muted);cursor:pointer;position:relative;border:1px solid transparent}
+.cal-day.empty-day{background:transparent;cursor:default}
+.cal-day.today{border:2px solid var(--purple);font-weight:700}
+.cal-day.has-data{color:#fff;font-weight:600}
+.cal-day .dot{width:5px;height:5px;border-radius:50%;position:absolute;bottom:3px}
+.cal-legend{display:flex;gap:12px;justify-content:center;margin-top:12px;font-size:.75rem;color:var(--muted);flex-wrap:wrap}
+.cal-legend span{display:flex;align-items:center;gap:4px}
+.cal-legend .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.prediction{background:linear-gradient(135deg,var(--pink-soft),var(--purple-soft));border-radius:12px;padding:14px;margin-bottom:10px}
+.prediction .pred-label{font-size:.75rem;color:var(--purple);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.prediction .pred-value{font-size:1.1rem;font-weight:700;color:var(--text);margin-top:4px}
+.prediction .pred-sub{font-size:.8rem;color:var(--muted);margin-top:2px}
+.sync-status{display:inline-block;padding:4px 10px;border-radius:12px;font-size:.75rem;font-weight:600;background:#eee;color:#666}
+.sync-status.ok{background:#e8f5e9;color:var(--green)}
+.sync-status.err{background:#ffebee;color:#c62828}
+.sync-status.syncing{background:#e3f2fd;color:var(--blue)}
+.row-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+details{margin-top:8px}
+details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:600;padding:8px 0}
+.hint{font-size:.75rem;color:var(--muted);line-height:1.5;margin:4px 0 8px}
+.hint a{color:var(--purple)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:12px 20px;border-radius:20px;font-size:.85rem;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
 </style>
 </head>
 <body>
@@ -417,7 +98,6 @@
   <div class="tab" data-view="sync">☁️ Sync</div>
 </div>
 
-<!-- LOG VIEW -->
 <div class="view active" id="view-log">
   <div class="day-header" id="dayHeader"></div>
 
@@ -441,24 +121,20 @@
     <h3>🤕 Headache / Migraine</h3>
     <div class="slider-label"><span>Pain intensity</span><span id="painVal">0</span></div>
     <div class="pain-scale" id="painScale"></div>
-
-    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Location</div>
+    <div style="margin-top:14px;font-size:.9rem;color:var(--muted);margin-bottom:6px">Location</div>
     <div class="chip-grid" id="headLocations"></div>
-
-    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Symptoms</div>
+    <div style="margin-top:14px;font-size:.9rem;color:var(--muted);margin-bottom:6px">Symptoms</div>
     <div class="chip-grid" id="headSymptoms"></div>
-
-    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Triggers</div>
+    <div style="margin-top:14px;font-size:.9rem;color:var(--muted);margin-bottom:6px">Triggers</div>
     <div class="chip-grid" id="headTriggers"></div>
-
-    <div style="margin-top:14px; font-size:0.9rem; color:var(--muted); margin-bottom:6px;">Medication taken</div>
+    <div style="margin-top:14px;font-size:.9rem;color:var(--muted);margin-bottom:6px">Medication taken</div>
     <textarea id="meds" placeholder="e.g. 400mg ibuprofen at 2pm..."></textarea>
   </div>
 
   <div class="card">
     <h3>💧 Water</h3>
     <div class="water-row" id="waterRow"></div>
-    <div style="text-align:center; font-size:0.85rem; color:var(--muted); margin-top:6px;" id="waterLabel">0 / 8 glasses</div>
+    <div style="text-align:center;font-size:.85rem;color:var(--muted);margin-top:6px" id="waterLabel">0 / 8 glasses</div>
   </div>
 
   <div class="card">
@@ -484,7 +160,6 @@
   <button class="save-btn" id="saveBtn">💾 Save Today</button>
 </div>
 
-<!-- CALENDAR VIEW -->
 <div class="view" id="view-calendar">
   <div class="card">
     <div class="cal-header">
@@ -501,12 +176,11 @@
     </div>
   </div>
   <div class="card">
-    <h3>🔍 Legend details</h3>
-    <p class="hint">Tap any day to jump to it in the Log tab. Days with a small dot have water logged. Purple border = today.</p>
+    <h3>🔍 Legend</h3>
+    <p class="hint">Tap any day to jump to it in the Log tab. Purple border = today.</p>
   </div>
 </div>
 
-<!-- HISTORY VIEW -->
 <div class="view" id="view-history">
   <div class="card">
     <h3>📅 Recent Entries</h3>
@@ -519,7 +193,6 @@
   <input type="file" id="importFile" accept="application/json" style="display:none">
 </div>
 
-<!-- INSIGHTS VIEW -->
 <div class="view" id="view-insights">
   <div class="card">
     <h3>🔮 Predictions</h3>
@@ -539,289 +212,255 @@
   </div>
 </div>
 
-<!-- SYNC VIEW -->
 <div class="view" id="view-sync">
   <div class="card">
     <h3>☁️ GitHub Gist Sync</h3>
-    <p class="hint">Back up your data to a <strong>secret</strong> GitHub Gist and sync across devices. Your token stays in this browser only — it never leaves your device except to talk directly to api.github.com.</p>
-
+    <p class="hint">Back up to a <strong>secret</strong> GitHub Gist and sync across devices. Your token stays in this browser only.</p>
     <details>
-      <summary>📖 How to set this up (one time, 2 minutes)</summary>
+      <summary>📖 How to set this up (2 minutes)</summary>
       <ol class="hint" style="padding-left:20px">
         <li>Go to <a href="https://github.com/settings/tokens/new?scopes=gist&description=cycle-tracker" target="_blank">github.com/settings/tokens/new</a></li>
-        <li>Give it a name like "cycle-tracker"</li>
-        <li>Check the <strong>gist</strong> scope only</li>
-        <li>Click "Generate token" and copy it (starts with <code>ghp_</code>)</li>
-        <li>Paste it below and click Save Token</li>
-        <li>Click "Create new Gist" the first time, then "Push" / "Pull" as needed</li>
+        <li>Name it "cycle-tracker", check only the <strong>gist</strong> scope</li>
+        <li>Generate, copy the token (starts with <code>ghp_</code>)</li>
+        <li>Paste below → Save Token → Create new Gist</li>
+        <li>Use Push / Pull as needed</li>
       </ol>
     </details>
-
-    <div style="margin-top:12px;">
-      <label class="hint" style="display:block;margin-bottom:4px;">Personal Access Token</label>
+    <div style="margin-top:12px">
+      <label class="hint" style="display:block;margin-bottom:4px">Personal Access Token</label>
       <input type="password" id="ghToken" placeholder="ghp_...">
     </div>
-
-    <div style="margin-top:10px;">
-      <label class="hint" style="display:block;margin-bottom:4px;">Gist ID (auto-filled after creating)</label>
-      <input type="text" id="ghGistId" placeholder="e.g. a1b2c3d4e5f6...">
+    <div style="margin-top:10px">
+      <label class="hint" style="display:block;margin-bottom:4px">Gist ID</label>
+      <input type="text" id="ghGistId" placeholder="auto-filled after creating">
     </div>
-
     <div class="row-btns">
       <button class="save-btn" id="saveTokenBtn">💾 Save Token</button>
-      <button class="save-btn secondary" id="createGistBtn">✨ Create new Gist</button>
+      <button class="save-btn secondary" id="createGistBtn">✨ Create Gist</button>
     </div>
     <div class="row-btns">
-      <button class="save-btn blue" id="pushBtn">⬆️ Push to Gist</button>
-      <button class="save-btn blue" id="pullBtn">⬇️ Pull from Gist</button>
+      <button class="save-btn blue" id="pushBtn">⬆️ Push</button>
+      <button class="save-btn blue" id="pullBtn">⬇️ Pull</button>
     </div>
-
-    <div style="text-align:center;margin-top:12px;">
+    <div style="text-align:center;margin-top:12px">
       <span class="sync-status" id="syncStatus">Not configured</span>
     </div>
-    <div class="hint" id="syncInfo" style="text-align:center;margin-top:8px;"></div>
+    <div class="hint" id="syncInfo" style="text-align:center;margin-top:8px"></div>
   </div>
-
   <div class="card">
     <h3>🧹 Danger Zone</h3>
-    <p class="hint">Erase all local data on this device. Make sure you've pushed to Gist or exported JSON first!</p>
-    <button class="save-btn secondary" id="wipeBtn" style="color:#c62828;border-color:#ffcdd2;">🗑️ Wipe Local Data</button>
+    <p class="hint">Erase all local data on this device. Export or push to Gist first!</p>
+    <button class="save-btn secondary" id="wipeBtn" style="color:#c62828;border-color:#ffcdd2">🗑️ Wipe Local Data</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY = 'cycleMigraineTracker';
-const TOKEN_KEY = 'cycleMigraineTracker_token';
-const GIST_KEY = 'cycleMigraineTracker_gistId';
-const today = new Date().toISOString().slice(0,10);
+const STORAGE_KEY='cycleMigraineTracker';
+const TOKEN_KEY='cycleMigraineTracker_token';
+const GIST_KEY='cycleMigraineTracker_gistId';
+const today=new Date().toISOString().slice(0,10);
 
-// ---------- DATA ----------
-let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-let entry = data[today] || {
-  cycle: 'none', cramps: 0, pain: 0,
-  headLocations: [], headSymptoms: [], headTriggers: [],
-  meds: '', water: 0, cravings: [],
-  mood: 5, energy: 5, sleep: 5, notes: ''
-};
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+let entry=data[today]||{cycle:'none',cramps:0,pain:0,headLocations:[],headSymptoms:[],headTriggers:[],meds:'',water:0,cravings:[],mood:5,energy:5,sleep:5,notes:''};
 
-// ---------- CONSTANTS ----------
-const HEAD_LOCATIONS = ['Front','Back','Left','Right','Behind eyes','Temples','Neck','Whole head'];
-const HEAD_SYMPTOMS = ['Nausea','Aura','Light sensitivity','Sound sensitivity','Dizziness','Vomiting','Fatigue','Blurred vision'];
-const HEAD_TRIGGERS = ['Stress','Poor sleep','Skipped meal','Dehydration','Caffeine','Alcohol','Weather','Screen time','Hormones','Chocolate','Strong smell','Loud noise'];
-const CRAVINGS = ['Sweet','Salty','Chocolate','Carbs','Dairy','Spicy','Coffee','Fruit','None'];
+const HEAD_LOCATIONS=['Front','Back','Left','Right','Behind eyes','Temples','Neck','Whole head'];
+const HEAD_SYMPTOMS=['Nausea','Aura','Light sensitivity','Sound sensitivity','Dizziness','Vomiting','Fatigue','Blurred vision'];
+const HEAD_TRIGGERS=['Stress','Poor sleep','Skipped meal','Dehydration','Caffeine','Alcohol','Weather','Screen time','Hormones','Chocolate','Strong smell','Loud noise'];
+const CRAVINGS=['Sweet','Salty','Chocolate','Carbs','Dairy','Spicy','Coffee','Fruit','None'];
 
-// ---------- TOAST ----------
 let toastTimer;
-function toast(msg, ms=2000) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
-}
+function toast(msg,ms=2000){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),ms);}
 
-// ---------- INIT ----------
-document.getElementById('todayLabel').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
-document.getElementById('dayHeader').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+document.getElementById('todayLabel').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+document.getElementById('dayHeader').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-const painScale = document.getElementById('painScale');
-for (let i = 0; i <= 10; i++) {
-  const b = document.createElement('button');
-  b.className = 'pain-btn';
-  b.textContent = i;
-  b.dataset.pain = i;
-  b.onclick = () => { entry.pain = i; updatePain(); };
-  painScale.appendChild(b);
-}
+const painScale=document.getElementById('painScale');
+for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='pain-btn';b.textContent=i;b.dataset.pain=i;b.onclick=()=>{entry.pain=i;updatePain();};painScale.appendChild(b);}
 
-function buildChips(containerId, list, key) {
-  const el = document.getElementById(containerId);
-  list.forEach(item => {
-    const c = document.createElement('div');
-    c.className = 'chip';
-    c.textContent = item;
-    c.dataset.val = item;
-    c.onclick = () => {
-      const arr = entry[key];
-      const i = arr.indexOf(item);
-      if (i >= 0) arr.splice(i,1); else arr.push(item);
-      c.classList.toggle('active');
-    };
+function buildChips(id,list,key){
+  const el=document.getElementById(id);
+  list.forEach(item=>{
+    const c=document.createElement('div');
+    c.className='chip';c.textContent=item;c.dataset.val=item;
+    c.onclick=()=>{const arr=entry[key];const i=arr.indexOf(item);if(i>=0)arr.splice(i,1);else arr.push(item);c.classList.toggle('active');};
     el.appendChild(c);
   });
 }
-buildChips('headLocations', HEAD_LOCATIONS, 'headLocations');
-buildChips('headSymptoms', HEAD_SYMPTOMS, 'headSymptoms');
-buildChips('headTriggers', HEAD_TRIGGERS, 'headTriggers');
-buildChips('cravings', CRAVINGS, 'cravings');
+buildChips('headLocations',HEAD_LOCATIONS,'headLocations');
+buildChips('headSymptoms',HEAD_SYMPTOMS,'headSymptoms');
+buildChips('headTriggers',HEAD_TRIGGERS,'headTriggers');
+buildChips('cravings',CRAVINGS,'cravings');
 
-const waterRow = document.getElementById('waterRow');
-for (let i = 0; i < 8; i++) {
-  const g = document.createElement('span');
-  g.className = 'water-glass';
-  g.textContent = '💧';
-  g.onclick = () => {
-    entry.water = (entry.water === i+1) ? i : i+1;
-    updateWater();
-  };
+const waterRow=document.getElementById('waterRow');
+for(let i=0;i<8;i++){
+  const g=document.createElement('span');
+  g.className='water-glass';g.textContent='💧';
+  g.onclick=()=>{entry.water=(entry.water===i+1)?i:i+1;updateWater();};
   waterRow.appendChild(g);
 }
 
-['cramps','mood','energy','sleep'].forEach(id => {
-  const el = document.getElementById(id);
-  el.oninput = () => {
-    entry[id] = +el.value;
-    document.getElementById(id + 'Val').textContent = el.value;
-  };
+['cramps','mood','energy','sleep'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.oninput=()=>{entry[id]=+el.value;document.getElementById(id+'Val').textContent=el.value;};
 });
 
-document.getElementById('meds').oninput = e => entry.meds = e.target.value;
-document.getElementById('notes').oninput = e => entry.notes = e.target.value;
+document.getElementById('meds').oninput=e=>entry.meds=e.target.value;
+document.getElementById('notes').oninput=e=>entry.notes=e.target.value;
 
-document.querySelectorAll('.cycle-btn').forEach(b => {
-  b.onclick = () => {
-    entry.cycle = b.dataset.cycle;
-    updateCycle();
-  };
+document.querySelectorAll('.cycle-btn').forEach(b=>{
+  b.onclick=()=>{entry.cycle=b.dataset.cycle;updateCycle();};
 });
 
-// ---------- RENDER ----------
-function updateCycle() {
-  document.querySelectorAll('.cycle-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.cycle === entry.cycle));
-}
-function updatePain() {
-  document.querySelectorAll('.pain-btn').forEach(b => {
-    const p = +b.dataset.pain;
-    b.classList.toggle('active', p === entry.pain);
-    if (p === entry.pain) {
-      const hue = 120 - (p * 12);
-      b.style.background = `hsl(${hue},70%,55%)`;
-    } else {
-      b.style.background = '#f5f5f5';
-    }
+function updateCycle(){document.querySelectorAll('.cycle-btn').forEach(b=>b.classList.toggle('active',b.dataset.cycle===entry.cycle));}
+function updatePain(){
+  document.querySelectorAll('.pain-btn').forEach(b=>{
+    const p=+b.dataset.pain;
+    b.classList.toggle('active',p===entry.pain);
+    b.style.background=(p===entry.pain)?`hsl(${120-p*12},70%,55%)`:'#f5f5f5';
   });
-  document.getElementById('painVal').textContent = entry.pain;
+  document.getElementById('painVal').textContent=entry.pain;
 }
-function updateWater() {
-  document.querySelectorAll('.water-glass').forEach((g, i) =>
-    g.classList.toggle('active', i < entry.water));
-  document.getElementById('waterLabel').textContent = `${entry.water} / 8 glasses`;
+function updateWater(){
+  document.querySelectorAll('.water-glass').forEach((g,i)=>g.classList.toggle('active',i<entry.water));
+  document.getElementById('waterLabel').textContent=`${entry.water} / 8 glasses`;
 }
-function loadChips() {
-  ['headLocations','headSymptoms','headTriggers','cravings'].forEach(key => {
-    const container = document.getElementById(key);
-    container.querySelectorAll('.chip').forEach(c =>
-      c.classList.toggle('active', entry[key].includes(c.dataset.val)));
+function loadChips(){
+  ['headLocations','headSymptoms','headTriggers','cravings'].forEach(key=>{
+    document.getElementById(key).querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',entry[key].includes(c.dataset.val)));
   });
 }
-function loadAll() {
-  updateCycle(); updatePain(); updateWater(); loadChips();
-  ['cramps','mood','energy','sleep'].forEach(id => {
-    document.getElementById(id).value = entry[id];
-    document.getElementById(id + 'Val').textContent = entry[id];
-  });
-  document.getElementById('meds').value = entry.meds;
-  document.getElementById('notes').value = entry.notes;
+function loadAll(){
+  updateCycle();updatePain();updateWater();loadChips();
+  ['cramps','mood','energy','sleep'].forEach(id=>{document.getElementById(id).value=entry[id];document.getElementById(id+'Val').textContent=entry[id];});
+  document.getElementById('meds').value=entry.meds;
+  document.getElementById('notes').value=entry.notes;
 }
 loadAll();
 
-// ---------- SAVE ----------
-document.getElementById('saveBtn').onclick = () => {
-  data[today] = entry;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  const btn = document.getElementById('saveBtn');
-  btn.textContent = '✅ Saved!';
-  setTimeout(() => btn.textContent = '💾 Save Today', 1500);
-  renderHistory();
-  renderInsights();
-  renderCalendar();
+document.getElementById('saveBtn').onclick=()=>{
+  data[today]=entry;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+  const btn=document.getElementById('saveBtn');
+  btn.textContent='✅ Saved!';
+  setTimeout(()=>btn.textContent='💾 Save Today',1500);
+  renderHistory();renderInsights();renderCalendar();
   toast('Saved!');
 };
 
-// ---------- HISTORY ----------
-function renderHistory() {
-  const list = document.getElementById('historyList');
-  const days = Object.keys(data).sort().reverse();
-  if (!days.length) { list.innerHTML = '<div class="empty">No entries yet</div>'; return; }
-  list.innerHTML = days.map(d => {
-    const e = data[d];
-    const bits = [];
-    if (e.cycle !== 'none') bits.push(`🩸 ${e.cycle}`);
-    if (e.cramps > 0) bits.push(`cramps ${e.cramps}/10`);
-    if (e.pain > 0) bits.push(`🤕 pain ${e.pain}/10`);
-    if (e.water) bits.push(`💧 ${e.water}`);
-    if (e.cravings.length) bits.push(`🍫 ${e.cravings.join(', ')}`);
-    if (e.headTriggers.length) bits.push(`⚡ ${e.headTriggers.join(', ')}`);
-    if (e.mood !== 5) bits.push(`mood ${e.mood}`);
-    return `<div class="hist-item">
-      <div class="date">${new Date(d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div>
-      <div class="tags">${bits.join(' • ') || 'No notable data'}</div>
-    </div>`;
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  const days=Object.keys(data).sort().reverse();
+  if(!days.length){list.innerHTML='<div class="empty">No entries yet</div>';return;}
+  list.innerHTML=days.map(d=>{
+    const e=data[d];const bits=[];
+    if(e.cycle!=='none')bits.push(`🩸 ${e.cycle}`);
+    if(e.cramps>0)bits.push(`cramps ${e.cramps}/10`);
+    if(e.pain>0)bits.push(`🤕 pain ${e.pain}/10`);
+    if(e.water)bits.push(`💧 ${e.water}`);
+    if(e.cravings.length)bits.push(`🍫 ${e.cravings.join(', ')}`);
+    if(e.headTriggers.length)bits.push(`⚡ ${e.headTriggers.join(', ')}`);
+    if(e.mood!==5)bits.push(`mood ${e.mood}`);
+    return `<div class="hist-item"><div class="date">${new Date(d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div><div class="tags">${bits.join(' • ')||'No notable data'}</div></div>`;
   }).join('');
 }
 
-// ---------- INSIGHTS ----------
-function renderInsights() {
-  const days = Object.values(data);
-  const grid = document.getElementById('statsGrid');
-  const headacheDays = days.filter(d => d.pain > 0).length;
-  const periodDays = days.filter(d => ['light','medium','heavy','spotting'].includes(d.cycle)).length;
-  const avgWater = days.length ? (days.reduce((s,d)=>s+d.water,0)/days.length).toFixed(1) : 0;
-
-  grid.innerHTML = `
+function renderInsights(){
+  const days=Object.values(data);
+  const grid=document.getElementById('statsGrid');
+  const headacheDays=days.filter(d=>d.pain>0).length;
+  const periodDays=days.filter(d=>['light','medium','heavy','spotting'].includes(d.cycle)).length;
+  const avgWater=days.length?(days.reduce((s,d)=>s+d.water,0)/days.length).toFixed(1):0;
+  grid.innerHTML=`
     <div class="stat"><div class="num">${days.length}</div><div class="label">Days logged</div></div>
     <div class="stat"><div class="num">${headacheDays}</div><div class="label">Headache days</div></div>
     <div class="stat"><div class="num">${periodDays}</div><div class="label">Period days</div></div>
-    <div class="stat"><div class="num">${avgWater}</div><div class="label">Avg 💧/day</div></div>
-  `;
-
-  const trigCount = {};
-  days.forEach(d => d.headTriggers.forEach(t => trigCount[t] = (trigCount[t]||0)+1));
-  const top = Object.entries(trigCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  document.getElementById('topTriggers').innerHTML = top.length
-    ? top.map(([t,c]) => `<div class="hist-item"><div class="date">${t}</div><div class="tags">${c} time${c>1?'s':''}</div></div>`).join('')
-    : '<div class="empty">Log some headaches first</div>';
-
-  let headacheOnPeriod = 0, headachesTotal = 0;
-  days.forEach(d => {
-    if (d.pain > 0) {
-      headachesTotal++;
-      if (['light','medium','heavy','spotting','pms'].includes(d.cycle)) headacheOnPeriod++;
-    }
-  });
-  const corr = document.getElementById('cycleCorrelation');
-  if (headachesTotal >= 3) {
-    const pct = Math.round((headacheOnPeriod/headachesTotal)*100);
-    corr.innerHTML = `<div style="text-align:center;padding:12px;">
-      <div style="font-size:2rem;font-weight:700;color:var(--pink)">${pct}%</div>
-      <div style="color:var(--muted);font-size:0.85rem;">of your headaches happened during period/PMS</div>
-    </div>`;
-  } else {
-    corr.innerHTML = '<div class="empty">Need more data (3+ headache days)</div>';
+    <div class="stat"><div class="num">${avgWater}</div><div class="label">Avg 💧/day</div></div>`;
+  const trigCount={};
+  days.forEach(d=>d.headTriggers.forEach(t=>trigCount[t]=(trigCount[t]||0)+1));
+  const top=Object.entries(trigCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('topTriggers').innerHTML=top.length
+    ?top.map(([t,c])=>`<div class="hist-item"><div class="date">${t}</div><div class="tags">${c} time${c>1?'s':''}</div></div>`).join('')
+    :'<div class="empty">Log some headaches first</div>';
+  let hOnP=0,hTot=0;
+  days.forEach(d=>{if(d.pain>0){hTot++;if(['light','medium','heavy','spotting','pms'].includes(d.cycle))hOnP++;}});
+  const corr=document.getElementById('cycleCorrelation');
+  if(hTot>=3){
+    const pct=Math.round((hOnP/hTot)*100);
+    corr.innerHTML=`<div style="text-align:center;padding:12px"><div style="font-size:2rem;font-weight:700;color:var(--pink)">${pct}%</div><div style="color:var(--muted);font-size:.85rem">of your headaches happened during period/PMS</div></div>`;
+  }else{
+    corr.innerHTML='<div class="empty">Need more data (3+ headache days)</div>';
   }
-
   renderPredictions();
 }
 
-// ---------- PREDICTIONS ----------
-function renderPredictions() {
-  const el = document.getElementById('predictions');
-  const days = Object.keys(data).sort();
-
-  // Find period start days (light/medium/heavy/spotting)
-  const periodDays = days.filter(d =>
-    ['light','medium','heavy','spotting'].includes(data[d].cycle));
-
-  if (periodDays.length < 2) {
-    el.innerHTML = '<div class="empty">Log at least 2 period days to see predictions 🌸</div>';
+function renderPredictions(){
+  const el=document.getElementById('predictions');
+  const days=Object.keys(data).sort();
+  const periodDays=days.filter(d=>['light','medium','heavy','spotting'].includes(data[d].cycle));
+  if(periodDays.length<2){el.innerHTML='<div class="empty">Log at least 2 period days to see predictions 🌸</div>';return;}
+  const periods=[];let current=[periodDays[0]];
+  for(let i=1;i<periodDays.length;i++){
+    const prev=new Date(periodDays[i-1]);
+    const curr=new Date(periodDays[i]);
+    const diff=(curr-prev)/(1000*60*60*24);
+    if(diff>2){periods.push(current);current=[periodDays[i]];}
+    else current.push(periodDays[i]);
+  }
+  periods.push(current);
+  if(periods.length<2){
+    el.innerHTML=`<div class="prediction"><div class="pred-label">Current cycle</div><div class="pred-value">Started ${new Date(periods[periods.length-1][0]).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div><div class="pred-sub">Log another period to unlock cycle-length predictions</div></div>`;
     return;
   }
+  const cycleLengths=[];
+  for(let i=1;i<periods.length;i++){
+    const a=new Date(periods[i-1][0]);
+    const b=new Date(periods[i][0]);
+    cycleLengths.push(Math.round((b-a)/(1000*60*60*24)));
+  }
+  const avg=Math.round(cycleLengths.reduce((s,n)=>s+n,0)/cycleLengths.length);
+  const lastStart=new Date(periods[periods.length-1][0]);
+  const nextStart=new Date(lastStart);nextStart.setDate(nextStart.getDate()+avg);
+  const ovulation=new Date(nextStart);ovulation.setDate(ovulation.getDate()-14);
+  const fertileStart=new Date(ovulation);fertileStart.setDate(fertileStart.getDate()-5);
+  const fertileEnd=new Date(ovulation);fertileEnd.setDate(fertileEnd.getDate()+1);
+  const fmt=d=>d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  const daysUntil=Math.round((nextStart-new Date())/(1000*60*60*24));
+  el.innerHTML=`
+    <div class="prediction"><div class="pred-label">Average cycle</div><div class="pred-value">${avg} days</div><div class="pred-sub">Based on ${cycleLengths.length} cycle${cycleLengths.length>1?'s':''}</div></div>
+    <div class="prediction"><div class="pred-label">Next period</div><div class="pred-value">${fmt(nextStart)}</div><div class="pred-sub">${daysUntil>0?`in ${daysUntil} day${daysUntil>1?'s':''}`:daysUntil===0?'today':`${-daysUntil} day${daysUntil<-1?'s':''} late`}</div></div>
+    <div class="prediction"><div class="pred-label">Fertile window</div><div class="pred-value">${fmt(fertileStart)} – ${fmt(fertileEnd)}</div><div class="pred-sub">Ovulation around ${fmt(ovulation)}</div></div>`;
+}
 
-  // Group consecutive period days into "cycles" — a cycle starts when there's a gap
-  const periods = [];
-  let current = [periodDays[0]];
-  for (let i = 1; i < periodDays.length; i++) {
-    const prev = new Date(periodDays[i
+function renderCalendar(){
+  const grid=document.getElementById('calGrid');
+  if(!grid.dataset.built){
+    const labels=['S','M','T','W','T','F','S'];
+    labels.forEach(l=>{const d=document.createElement('div');d.className='cal-day-label';d.textContent=l;grid.appendChild(d);});
+    grid.dataset.built='1';
+  }
+  grid.querySelectorAll('.cal-day').forEach(n=>n.remove());
+  const title=document.getElementById('calTitle');
+  const year=calDate.getFullYear(),month=calDate.getMonth();
+  title.textContent=calDate.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  const first=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  for(let i=0;i<first;i++){
+    const e=document.createElement('div');e.className='cal-day empty-day';grid.appendChild(e);
+  }
+  const todayStr=new Date().toISOString().slice(0,10);
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const el=document.createElement('div');el.className='cal-day';el.textContent=d;
+    const rec=data[ds];
+    if(rec){
+      const isPeriod=['light','medium','heavy','spotting'].includes(rec.cycle);
+      const isPmsFertile=['pms','fertile','ovulation'].includes(rec.cycle);
+      const hasHead=rec.pain>0;
+      if(isPeriod&&hasHead)el.style.background='#9c27b0';
+      else if(isPeriod)el.style.background='#e91e63';
+      else if(hasHead)el.style.background='#673ab7';
+      else if(isPmsFertile)el.style.background='#f3e5f5';
+      if(isPeriod||hasHead||isPmsFertile)el.classList.add('has-data');
+      if(rec.water>0){const dot=document.createElement('span');dot.className='dot';dot.style.background='#2196f3';el.appendChild(dot);
