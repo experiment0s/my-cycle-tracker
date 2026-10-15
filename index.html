@@ -463,4 +463,186 @@ function renderCalendar(){
       else if(hasHead)el.style.background='#673ab7';
       else if(isPmsFertile)el.style.background='#f3e5f5';
       if(isPeriod||hasHead||isPmsFertile)el.classList.add('has-data');
-      if(rec.water>0){const dot=document.createElement('span');dot.className='dot';dot.style.background='#2196f3';el.appendChild(dot);
+      if(rec.water>0){const dot=document.createElement('span');dot.className='dot';dot.style.background='#2196f3';el.appendChild(dot);}
+    }
+    if(ds===todayStr)el.classList.add('today');
+    el.onclick=()=>{
+      if(ds===todayStr){switchTab('log');toast('Jumped to today');return;}
+      toast(`Editing ${ds} isn't supported yet — only today can be edited`,'2500');
+    };
+    grid.appendChild(el);
+  }
+}
+
+let calDate=new Date();
+document.getElementById('calPrev').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderCalendar();};
+document.getElementById('calNext').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderCalendar();};
+
+document.getElementById('exportBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`cycle-migraine-export-${today}.json`;a.click();
+  toast('Exported!');
+};
+
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=e=>{
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(typeof imported!=='object'||Array.isArray(imported))throw new Error('bad format');
+      const merged={...data,...imported};
+      data=merged;
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+      entry=data[today]||entry;
+      loadAll();renderHistory();renderInsights();renderCalendar();
+      toast(`Imported ${Object.keys(imported).length} days!`);
+    }catch(err){toast('❌ Invalid JSON file');}
+  };
+  reader.readAsText(file);
+};
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.view===name));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if(name==='history')renderHistory();
+  if(name==='insights')renderInsights();
+  if(name==='calendar')renderCalendar();
+  if(name==='sync')loadSyncUI();
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.view));
+
+// ---------- GIST SYNC ----------
+function getToken(){return localStorage.getItem(TOKEN_KEY)||'';}
+function getGistId(){return localStorage.getItem(GIST_KEY)||'';}
+
+function setSyncStatus(text,cls){
+  const el=document.getElementById('syncStatus');
+  el.textContent=text;el.className='sync-status'+(cls?' '+cls:'');
+}
+function loadSyncUI(){
+  document.getElementById('ghToken').value=getToken();
+  document.getElementById('ghGistId').value=getGistId();
+  if(getToken()&&getGistId())setSyncStatus('Ready','ok');
+  else if(getToken())setSyncStatus('Token saved — create a Gist');
+  else setSyncStatus('Not configured');
+}
+
+document.getElementById('saveTokenBtn').onclick=()=>{
+  const t=document.getElementById('ghToken').value.trim();
+  if(!t){toast('Paste a token first');return;}
+  localStorage.setItem(TOKEN_KEY,t);
+  toast('Token saved 🔒');loadSyncUI();
+};
+document.getElementById('ghGistId').onchange=e=>{
+  localStorage.setItem(GIST_KEY,e.target.value.trim());
+  loadSyncUI();
+};
+
+document.getElementById('createGistBtn').onclick=async()=>{
+  const token=getToken();
+  if(!token){toast('Save your token first');return;}
+  setSyncStatus('Creating…','syncing');
+  try{
+    const res=await fetch('https://api.github.com/gists',{
+      method:'POST',
+      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'},
+      body:JSON.stringify({
+        description:'🩸 Cycle & Migraine Tracker backup',
+        public:false,
+        files:{'cycle-migraine-data.json':{content:JSON.stringify(data,null,2)}}
+      })
+    });
+    if(!res.ok)throw new Error(await res.text());
+    const gist=await res.json();
+    localStorage.setItem(GIST_KEY,gist.id);
+    document.getElementById('ghGistId').value=gist.id;
+    setSyncStatus('Created ✓','ok');
+    toast('Gist created! Now use Push/Pull');
+    document.getElementById('syncInfo').innerHTML=`Gist ID: <code>${gist.id}</code>`;
+  }catch(err){
+    setSyncStatus('Error','err');
+    toast('❌ '+(err.message||'Create failed').slice(0,80));
+  }
+};
+
+document.getElementById('pushBtn').onclick=async()=>{
+  const token=getToken(),gistId=getGistId();
+  if(!token||!gistId){toast('Save token + create/get gist first');return;}
+  setSyncStatus('Pushing…','syncing');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${gistId}`,{
+      method:'PATCH',
+      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'},
+      body:JSON.stringify({files:{'cycle-migraine-data.json':{content:JSON.stringify(data,null,2)}}})
+    });
+    if(!res.ok)throw new Error(await res.text());
+    const now=new Date().toLocaleString();
+    localStorage.setItem('cycleMigraineTracker_lastSync',now);
+    setSyncStatus('Pushed ✓','ok');
+    toast('Pushed to Gist!');
+    document.getElementById('syncInfo').textContent='Last sync: '+now;
+  }catch(err){
+    setSyncStatus('Error','err');
+    toast('❌ '+(err.message||'Push failed').slice(0,80));
+  }
+};
+
+document.getElementById('pullBtn').onclick=async()=>{
+  const token=getToken(),gistId=getGistId();
+  if(!token||!gistId){toast('Save token + create/get gist first');return;}
+  if(!confirm('Pull will merge remote data into local. Continue?'))return;
+  setSyncStatus('Pulling…','syncing');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${gistId}`,{
+      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'}
+    });
+    if(!res.ok)throw new Error(await res.text());
+    const gist=await res.json();
+    const file=gist.files['cycle-migraine-data.json'];
+    if(!file){throw new Error('No data file in gist');}
+    const remoteContent=await fetch(file.raw_url).then(r=>r.text());
+    const remote=JSON.parse(remoteContent);
+    const merged={...data,...remote};
+    data=merged;
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+    entry=data[today]||entry;
+    loadAll();renderHistory();renderInsights();renderCalendar();
+    const now=new Date().toLocaleString();
+    setSyncStatus('Pulled ✓','ok');
+    toast('Pulled from Gist!');
+    document.getElementById('syncInfo').textContent='Last sync: '+now;
+  }catch(err){
+    setSyncStatus('Error','err');
+    toast('❌ '+(err.message||'Pull failed').slice(0,80));
+  }
+};
+
+document.getElementById('wipeBtn').onclick=()=>{
+  if(!confirm('Erase ALL local data on this device? This cannot be undone.'))return;
+  if(!confirm('Really sure? Export or push to Gist first!'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  data={};
+  entry={cycle:'none',cramps:0,pain:0,headLocations:[],headSymptoms:[],headTriggers:[],meds:'',water:0,cravings:[],mood:5,energy:5,sleep:5,notes:''};
+  loadAll();renderHistory();renderInsights();renderCalendar();
+  toast('Local data wiped');
+};
+
+// ---------- INIT RENDER ----------
+loadSyncUI();
+renderHistory();
+renderInsights();
+renderCalendar();
+
+// ---------- SERVICE WORKER (PWA offline) ----------
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
