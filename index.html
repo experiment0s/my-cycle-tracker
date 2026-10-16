@@ -288,8 +288,25 @@ let entry=makeEntry(selectedDate);
 
 function makeEntry(dateStr){
   const stored=data[dateStr];
-  if(stored){return {...BLANK,...stored};}
-  return {...BLANK};
+  if(stored){
+    return {
+      cycle: stored.cycle||'none',
+      cramps: stored.cramps||0,
+      pain: stored.pain||0,
+      headLocations: stored.headLocations||[],
+      headSymptoms: stored.headSymptoms||[],
+      headTriggers: stored.headTriggers||[],
+      meds: stored.meds||'',
+      water: stored.water||0,
+      cravings: stored.cravings||[],
+      mood: stored.mood!==undefined?stored.mood:5,
+      energy: stored.energy!==undefined?stored.energy:5,
+      stress: stored.stress!==undefined?stored.stress:5,
+      sleep: stored.sleep!==undefined?stored.sleep:5,
+      notes: stored.notes||''
+    };
+  }
+  return JSON.parse(JSON.stringify(BLANK));
 }
 
 const HEAD_LOCATIONS=['Front','Back','Left','Right','Behind eyes','Temples','Neck','Whole head'];
@@ -311,19 +328,29 @@ function updateDateHeader(){
   }else{
     banner.style.display='block';
     const label=selectedDate>today?'Future date':'Past date';
-    banner.textContent=`⚠️ Editing ${label} — Save will store to ${selectedDate}`;
+    banner.textContent='⚠️ Editing '+label+' — Save will store to '+selectedDate;
   }
 }
 
 const painScale=document.getElementById('painScale');
-for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='pain-btn';b.textContent=i;b.dataset.pain=i;b.onclick=()=>{entry.pain=i;updatePain();};painScale.appendChild(b);}
+for(let i=0;i<=10;i++){
+  const b=document.createElement('button');
+  b.className='pain-btn';b.textContent=i;b.dataset.pain=i;
+  b.onclick=function(){entry.pain=i;updatePain();};
+  painScale.appendChild(b);
+}
 
 function buildChips(id,list,key){
   const el=document.getElementById(id);
-  list.forEach(item=>{
+  list.forEach(function(item){
     const c=document.createElement('div');
     c.className='chip';c.textContent=item;c.dataset.val=item;
-    c.onclick=()=>{const arr=entry[key];const i=arr.indexOf(item);if(i>=0)arr.splice(i,1);else arr.push(item);c.classList.toggle('active');};
+    c.onclick=function(){
+      const arr=entry[key];
+      const idx=arr.indexOf(item);
+      if(idx>=0)arr.splice(idx,1);else arr.push(item);
+      c.classList.toggle('active');
+    };
     el.appendChild(c);
   });
 }
@@ -336,43 +363,48 @@ const waterRow=document.getElementById('waterRow');
 for(let i=0;i<8;i++){
   const g=document.createElement('span');
   g.className='water-glass';g.textContent='💧';
-  g.onclick=()=>{entry.water=(entry.water===i+1)?i:i+1;updateWater();};
+  g.onclick=(function(idx){return function(){entry.water=(entry.water===idx+1)?idx:idx+1;updateWater();};})(i);
   waterRow.appendChild(g);
 }
 
-['cramps','mood','energy','stress','sleep'].forEach(id=>{
+['cramps','mood','energy','stress','sleep'].forEach(function(id){
   const el=document.getElementById(id);
-  el.oninput=()=>{entry[id]=+el.value;document.getElementById(id+'Val').textContent=el.value;};
+  el.oninput=function(){entry[id]=+el.value;document.getElementById(id+'Val').textContent=el.value;};
 });
 
-document.getElementById('meds').oninput=e=>entry.meds=e.target.value;
-document.getElementById('notes').oninput=e=>entry.notes=e.target.value;
+document.getElementById('meds').oninput=function(e){entry.meds=e.target.value;};
+document.getElementById('notes').oninput=function(e){entry.notes=e.target.value;};
 
-document.querySelectorAll('.cycle-btn').forEach(b=>{
-  b.onclick=()=>{entry.cycle=b.dataset.cycle;updateCycle();};
+document.querySelectorAll('.cycle-btn').forEach(function(b){
+  b.onclick=function(){entry.cycle=b.dataset.cycle;updateCycle();};
 });
 
-function updateCycle(){document.querySelectorAll('.cycle-btn').forEach(b=>b.classList.toggle('active',b.dataset.cycle===entry.cycle));}
+function updateCycle(){document.querySelectorAll('.cycle-btn').forEach(function(b){b.classList.toggle('active',b.dataset.cycle===entry.cycle);});}
 function updatePain(){
-  document.querySelectorAll('.pain-btn').forEach(b=>{
+  document.querySelectorAll('.pain-btn').forEach(function(b){
     const p=+b.dataset.pain;
     b.classList.toggle('active',p===entry.pain);
-    b.style.background=(p===entry.pain)?`hsl(${120-p*12},70%,55%)`:'#f5f5f5';
+    b.style.background=(p===entry.pain)?'hsl('+(120-p*12)+',70%,55%)':'#f5f5f5';
   });
   document.getElementById('painVal').textContent=entry.pain;
 }
 function updateWater(){
-  document.querySelectorAll('.water-glass').forEach((g,i)=>g.classList.toggle('active',i<entry.water));
-  document.getElementById('waterLabel').textContent=`${entry.water} / 8 glasses`;
+  document.querySelectorAll('.water-glass').forEach(function(g,i){g.classList.toggle('active',i<entry.water);});
+  document.getElementById('waterLabel').textContent=entry.water+' / 8 glasses';
 }
 function loadChips(){
-  ['headLocations','headSymptoms','headTriggers','cravings'].forEach(key=>{
-    document.getElementById(key).querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',entry[key].includes(c.dataset.val)));
+  ['headLocations','headSymptoms','headTriggers','cravings'].forEach(function(key){
+    document.getElementById(key).querySelectorAll('.chip').forEach(function(c){
+      c.classList.toggle('active',entry[key].indexOf(c.dataset.val)>=0);
+    });
   });
 }
 function loadAll(){
   updateCycle();updatePain();updateWater();loadChips();
-  ['cramps','mood','energy','stress','sleep'].forEach(id=>{document.getElementById(id).value=entry[id];document.getElementById(id+'Val').textContent=entry[id];});
+  ['cramps','mood','energy','stress','sleep'].forEach(function(id){
+    document.getElementById(id).value=entry[id];
+    document.getElementById(id+'Val').textContent=entry[id];
+  });
   document.getElementById('meds').value=entry.meds;
   document.getElementById('notes').value=entry.notes;
 }
@@ -381,15 +413,14 @@ function updateSaveBtnLabel(){
   document.getElementById('saveBtn').textContent=selectedDate===today?'💾 Save Today':'💾 Save Entry';
 }
 
-// Date picker setup
 const datePicker=document.getElementById('datePicker');
 datePicker.value=selectedDate;
 datePicker.max=today;
-datePicker.onchange=e=>{
+datePicker.onchange=function(e){
   if(e.target.value>today){toast("Can't edit future dates");e.target.value=today;return;}
   loadDate(e.target.value);
 };
-document.getElementById('todayBtn').onclick=()=>loadDate(today);
+document.getElementById('todayBtn').onclick=function(){loadDate(today);};
 
 function loadDate(dateStr){
   selectedDate=dateStr;
@@ -404,38 +435,38 @@ updateDateHeader();
 loadAll();
 updateSaveBtnLabel();
 
-document.getElementById('saveBtn').onclick=()=>{
+document.getElementById('saveBtn').onclick=function(){
   data[selectedDate]=entry;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
   const btn=document.getElementById('saveBtn');
   const wasToday=selectedDate===today;
   btn.textContent='✅ Saved!';
-  setTimeout(()=>btn.textContent=wasToday?'💾 Save Today':'💾 Save Entry',1500);
+  setTimeout(function(){btn.textContent=wasToday?'💾 Save Today':'💾 Save Entry';},1500);
   renderHistory();renderInsights();renderCalendar();
-  toast(wasToday?'Saved!':`Saved ${selectedDate}`);
+  toast(wasToday?'Saved!':'Saved '+selectedDate);
 };
 
 function renderHistory(){
   const list=document.getElementById('historyList');
   const days=Object.keys(data).sort().reverse();
   if(!days.length){list.innerHTML='<div class="empty">No entries yet</div>';return;}
-  list.innerHTML=days.map(d=>{
+  list.innerHTML=days.map(function(d){
     const e=data[d];const bits=[];
-    if(e.cycle&&e.cycle!=='none')bits.push(`🩸 ${e.cycle}`);
-    if(e.cramps>0)bits.push(`cramps ${e.cramps}/10`);
-    if(e.pain>0)bits.push(`🤕 pain ${e.pain}/10`);
-    if(e.water)bits.push(`💧 ${e.water}`);
-    if(e.cravings&&e.cravings.length)bits.push(`🍫 ${e.cravings.join(', ')}`);
-    if(e.headTriggers&&e.headTriggers.length)bits.push(`⚡ ${e.headTriggers.join(', ')}`);
-    if(e.mood!==undefined&&e.mood!==5)bits.push(`mood ${e.mood}`);
-    if(e.stress!==undefined&&e.stress!==5)bits.push(`stress ${e.stress}`);
-    return `<div class="hist-item" data-date="${d}" style="cursor:pointer"><div class="date">${new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div><div class="tags">${bits.join(' • ')||'No notable data'}</div></div>`;
+    if(e.cycle&&e.cycle!=='none')bits.push('🩸 '+e.cycle);
+    if(e.cramps>0)bits.push('cramps '+e.cramps+'/10');
+    if(e.pain>0)bits.push('🤕 pain '+e.pain+'/10');
+    if(e.water)bits.push('💧 '+e.water);
+    if(e.cravings&&e.cravings.length)bits.push('🍫 '+e.cravings.join(', '));
+    if(e.headTriggers&&e.headTriggers.length)bits.push('⚡ '+e.headTriggers.join(', '));
+    if(e.mood!==undefined&&e.mood!==5)bits.push('mood '+e.mood);
+    if(e.stress!==undefined&&e.stress!==5)bits.push('stress '+e.stress);
+    return '<div class="hist-item" data-date="'+d+'" style="cursor:pointer"><div class="date">'+new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+'</div><div class="tags">'+(bits.join(' • ')||'No notable data')+'</div></div>';
   }).join('');
-  list.querySelectorAll('.hist-item').forEach(el=>{
-    el.onclick=()=>{
+  list.querySelectorAll('.hist-item').forEach(function(el){
+    el.onclick=function(){
       loadDate(el.dataset.date);
       switchTab('log');
-      toast(`Editing ${el.dataset.date}`);
+      toast('Editing '+el.dataset.date);
     };
   });
 }
@@ -443,28 +474,33 @@ function renderHistory(){
 function renderInsights(){
   const days=Object.values(data);
   const grid=document.getElementById('statsGrid');
-  const headacheDays=days.filter(d=>d.pain>0).length;
-  const periodDays=days.filter(d=>['light','medium','heavy','spotting'].includes(d.cycle)).length;
-  const avgWater=days.length?(days.reduce((s,d)=>s+d.water,0)/days.length).toFixed(1):0;
-  const stressDays=days.filter(d=>d.stress!==undefined&&d.stress>=7).length;
-  grid.innerHTML=`
-    <div class="stat"><div class="num">${days.length}</div><div class="label">Days logged</div></div>
-    <div class="stat"><div class="num">${headacheDays}</div><div class="label">Headache days</div></div>
-    <div class="stat"><div class="num">${periodDays}</div><div class="label">Period days</div></div>
-    <div class="stat"><div class="num">${avgWater}</div><div class="label">Avg 💧/day</div></div>
-    <div class="stat"><div class="num">${stressDays}</div><div class="label">High-stress days</div></div>`;
+  const headacheDays=days.filter(function(d){return d.pain>0;}).length;
+  const periodDays=days.filter(function(d){return ['light','medium','heavy','spotting'].indexOf(d.cycle)>=0;}).length;
+  const avgWater=days.length?(days.reduce(function(s,d){return s+d.water;},0)/days.length).toFixed(1):0;
+  const stressDays=days.filter(function(d){return d.stress!==undefined&&d.stress>=7;}).length;
+  grid.innerHTML=
+    '<div class="stat"><div class="num">'+days.length+'</div><div class="label">Days logged</div></div>'+
+    '<div class="stat"><div class="num">'+headacheDays+'</div><div class="label">Headache days</div></div>'+
+    '<div class="stat"><div class="num">'+periodDays+'</div><div class="label">Period days</div></div>'+
+    '<div class="stat"><div class="num">'+avgWater+'</div><div class="label">Avg 💧/day</div></div>'+
+    '<div class="stat"><div class="num">'+stressDays+'</div><div class="label">High-stress days</div></div>';
   const trigCount={};
-  days.forEach(d=>d.headTriggers.forEach(t=>trigCount[t]=(trigCount[t]||0)+1));
-  const top=Object.entries(trigCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  days.forEach(function(d){(d.headTriggers||[]).forEach(function(t){trigCount[t]=(trigCount[t]||0)+1;});});
+  const top=Object.entries(trigCount).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
   document.getElementById('topTriggers').innerHTML=top.length
-    ?top.map(([t,c])=>`<div class="hist-item"><div class="date">${t}</div><div class="tags">${c} time${c>1?'s':''}</div></div>`).join('')
+    ?top.map(function(x){return '<div class="hist-item"><div class="date">'+x[0]+'</div><div class="tags">'+x[1]+' time'+(x[1]>1?'s':'')+'</div></div>';}).join('')
     :'<div class="empty">Log some headaches first</div>';
   let hOnP=0,hTot=0;
-  days.forEach(d=>{if(d.pain>0){hTot++;if(['light','medium','heavy','spotting','pms'].includes(d.cycle))hOnP++;}});
+  days.forEach(function(d){
+    if(d.pain>0){
+      hTot++;
+      if(['light','medium','heavy','spotting','pms'].indexOf(d.cycle)>=0)hOnP++;
+    }
+  });
   const corr=document.getElementById('cycleCorrelation');
   if(hTot>=3){
     const pct=Math.round((hOnP/hTot)*100);
-    corr.innerHTML=`<div style="text-align:center;padding:12px"><div style="font-size:2rem;font-weight:700;color:var(--pink)">${pct}%</div><div style="color:var(--muted);font-size:.85rem">of your headaches happened during period/PMS</div></div>`;
+    corr.innerHTML='<div style="text-align:center;padding:12px"><div style="font-size:2rem;font-weight:700;color:var(--pink)">'+pct+'%</div><div style="color:var(--muted);font-size:.85rem">of your headaches happened during period/PMS</div></div>';
   }else{
     corr.innerHTML='<div class="empty">Need more data (3+ headache days)</div>';
   }
@@ -474,15 +510,15 @@ function renderInsights(){
 
 function headPct(arr){
   if(!arr.length)return 0;
-  return Math.round(arr.filter(d=>d.pain>0).length/arr.length*100);
+  return Math.round(arr.filter(function(d){return d.pain>0;}).length/arr.length*100);
 }
 function renderStressCorrelation(){
   const el=document.getElementById('stressCorrelation');
   if(!el)return;
-  const days=Object.values(data).filter(d=>d.stress!==undefined);
+  const days=Object.values(data).filter(function(d){return d.stress!==undefined;});
   if(days.length<3){el.innerHTML='<div class="empty">Log a few days with stress to see patterns</div>';return;}
-  const high=days.filter(d=>d.stress>=7);
-  const low=days.filter(d=>d.stress<=3);
+  const high=days.filter(function(d){return d.stress>=7;});
+  const low=days.filter(function(d){return d.stress<=3;});
   if(high.length<2||low.length<2){
     el.innerHTML='<div class="empty">Need 2+ high-stress and 2+ low-stress days</div>';
     return;
@@ -492,18 +528,18 @@ function renderStressCorrelation(){
   const verdict=diff>15?'💡 Headaches are more common on high-stress days'
     :diff<-15?'💡 Headaches are more common on low-stress days'
     :'💡 No clear link between stress and headaches yet';
-  el.innerHTML=`
-    <div class="stat-grid">
-      <div class="stat"><div class="num">${highH}%</div><div class="label">Headache rate on high-stress days</div></div>
-      <div class="stat"><div class="num">${lowH}%</div><div class="label">Headache rate on low-stress days</div></div>
-    </div>
-    <p class="hint" style="margin-top:10px;text-align:center">${verdict}</p>`;
+  el.innerHTML=
+    '<div class="stat-grid">'+
+      '<div class="stat"><div class="num">'+highH+'%</div><div class="label">Headache rate on high-stress days</div></div>'+
+      '<div class="stat"><div class="num">'+lowH+'%</div><div class="label">Headache rate on low-stress days</div></div>'+
+    '</div>'+
+    '<p class="hint" style="margin-top:10px;text-align:center">'+verdict+'</p>';
 }
 
 function renderPredictions(){
   const el=document.getElementById('predictions');
   const days=Object.keys(data).sort();
-  const periodDays=days.filter(d=>['light','medium','heavy','spotting'].includes(data[d].cycle));
+  const periodDays=days.filter(function(d){return ['light','medium','heavy','spotting'].indexOf(data[d].cycle)>=0;});
   if(periodDays.length<2){el.innerHTML='<div class="empty">Log at least 2 period days to see predictions 🌸</div>';return;}
   const periods=[];let current=[periodDays[0]];
   for(let i=1;i<periodDays.length;i++){
@@ -515,7 +551,7 @@ function renderPredictions(){
   }
   periods.push(current);
   if(periods.length<2){
-    el.innerHTML=`<div class="prediction"><div class="pred-label">Current cycle</div><div class="pred-value">Started ${new Date(periods[periods.length-1][0]+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div><div class="pred-sub">Log another period to unlock cycle-length predictions</div></div>`;
+    el.innerHTML='<div class="prediction"><div class="pred-label">Current cycle</div><div class="pred-value">Started '+new Date(periods[periods.length-1][0]+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</div><div class="pred-sub">Log another period to unlock cycle-length predictions</div></div>';
     return;
   }
   const cycleLengths=[];
@@ -524,18 +560,18 @@ function renderPredictions(){
     const b=new Date(periods[i][0]);
     cycleLengths.push(Math.round((b-a)/(1000*60*60*24)));
   }
-  const avg=Math.round(cycleLengths.reduce((s,n)=>s+n,0)/cycleLengths.length);
+  const avg=Math.round(cycleLengths.reduce(function(s,n){return s+n;},0)/cycleLengths.length);
   const lastStart=new Date(periods[periods.length-1][0]+'T12:00:00');
   const nextStart=new Date(lastStart);nextStart.setDate(nextStart.getDate()+avg);
   const ovulation=new Date(nextStart);ovulation.setDate(ovulation.getDate()-14);
   const fertileStart=new Date(ovulation);fertileStart.setDate(fertileStart.getDate()-5);
   const fertileEnd=new Date(ovulation);fertileEnd.setDate(fertileEnd.getDate()+1);
-  const fmt=d=>d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  const fmt=function(d){return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});};
   const daysUntil=Math.round((nextStart-new Date())/(1000*60*60*24));
-  el.innerHTML=`
-    <div class="prediction"><div class="pred-label">Average cycle</div><div class="pred-value">${avg} days</div><div class="pred-sub">Based on ${cycleLengths.length} cycle${cycleLengths.length>1?'s':''}</div></div>
-    <div class="prediction"><div class="pred-label">Next period</div><div class="pred-value">${fmt(nextStart)}</div><div class="pred-sub">${daysUntil>0?`in ${daysUntil} day${daysUntil>1?'s':''}`:daysUntil===0?'today':`${-daysUntil} day${daysUntil<-1?'s':''} late`}</div></div>
-    <div class="prediction"><div class="pred-label">Fertile window</div><div class="pred-value">${fmt(fertileStart)} – ${fmt(fertileEnd)}</div><div class="pred-sub">Ovulation around ${fmt(ovulation)}</div></div>`;
+  el.innerHTML=
+    '<div class="prediction"><div class="pred-label">Average cycle</div><div class="pred-value">'+avg+' days</div><div class="pred-sub">Based on '+cycleLengths.length+' cycle'+(cycleLengths.length>1?'s':'')+'</div></div>'+
+    '<div class="prediction"><div class="pred-label">Next period</div><div class="pred-value">'+fmt(nextStart)+'</div><div class="pred-sub">'+(daysUntil>0?'in '+daysUntil+' day'+(daysUntil>1?'s':''):daysUntil===0?'today':(-daysUntil)+' day'+(-daysUntil<-1?'s':'')+' late')+'</div></div>'+
+    '<div class="prediction"><div class="pred-label">Fertile window</div><div class="pred-value">'+fmt(fertileStart)+' – '+fmt(fertileEnd)+'</div><div class="pred-sub">Ovulation around '+fmt(ovulation)+'</div></div>';
 }
 
 let calDate=new Date();
@@ -543,11 +579,12 @@ let calDate=new Date();
 function renderCalendar(){
   const grid=document.getElementById('calGrid');
   if(!grid.dataset.built){
-    const labels=['S','M','T','W','T','F','S'];
-    labels.forEach(l=>{const d=document.createElement('div');d.className='cal-day-label';d.textContent=l;grid.appendChild(d);});
+    ['S','M','T','W','T','F','S'].forEach(function(l){
+      const d=document.createElement('div');d.className='cal-day-label';d.textContent=l;grid.appendChild(d);
+    });
     grid.dataset.built='1';
   }
-  grid.querySelectorAll('.cal-day').forEach(n=>n.remove());
+  grid.querySelectorAll('.cal-day').forEach(function(n){n.remove();});
   const title=document.getElementById('calTitle');
   const year=calDate.getFullYear(),month=calDate.getMonth();
   title.textContent=calDate.toLocaleDateString(undefined,{month:'long',year:'numeric'});
@@ -558,12 +595,12 @@ function renderCalendar(){
   }
   const todayStr=new Date().toISOString().slice(0,10);
   for(let d=1;d<=daysInMonth;d++){
-    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const el=document.createElement('div');el.className='cal-day';el.textContent=d;
     const rec=data[ds];
     if(rec){
-      const isPeriod=['light','medium','heavy','spotting'].includes(rec.cycle);
-      const isPmsFertile=['pms','fertile','ovulation'].includes(rec.cycle);
+      const isPeriod=['light','medium','heavy','spotting'].indexOf(rec.cycle)>=0;
+      const isPmsFertile=['pms','fertile','ovulation'].indexOf(rec.cycle)>=0;
       const hasHead=rec.pain>0;
       if(isPeriod&&hasHead)el.style.background='#9c27b0';
       else if(isPeriod)el.style.background='#e91e63';
@@ -574,56 +611,56 @@ function renderCalendar(){
     }
     if(ds===todayStr)el.classList.add('today');
     if(ds===selectedDate&&ds!==todayStr)el.style.outline='2px solid var(--pink)';
-    el.onclick=()=>{
-      if(ds>todayStr){toast("Can't edit future dates");return;}
-      loadDate(ds);
+    el.onclick=(function(dateStr){return function(){
+      if(dateStr>todayStr){toast("Can't edit future dates");return;}
+      loadDate(dateStr);
       switchTab('log');
-      toast(ds===todayStr?'Jumped to today':`Editing ${ds}`);
-    };
+      toast(dateStr===todayStr?'Jumped to today':'Editing '+dateStr);
+    };})(ds);
     grid.appendChild(el);
   }
 }
 
-document.getElementById('calPrev').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderCalendar();};
-document.getElementById('calNext').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderCalendar();};
+document.getElementById('calPrev').onclick=function(){calDate.setMonth(calDate.getMonth()-1);renderCalendar();};
+document.getElementById('calNext').onclick=function(){calDate.setMonth(calDate.getMonth()+1);renderCalendar();};
 
-document.getElementById('exportBtn').onclick=()=>{
+document.getElementById('exportBtn').onclick=function(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`cycle-migraine-export-${today}.json`;a.click();
+  a.download='cycle-migraine-export-'+today+'.json';a.click();
   toast('Exported!');
 };
 
-document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
-document.getElementById('importFile').onchange=e=>{
+document.getElementById('importBtn').onclick=function(){document.getElementById('importFile').click();};
+document.getElementById('importFile').onchange=function(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=function(ev){
     try{
       const imported=JSON.parse(ev.target.result);
       if(typeof imported!=='object'||Array.isArray(imported))throw new Error('bad format');
-      const merged={...data,...imported};
+      const merged=Object.assign({},data,imported);
       data=merged;
       localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
       entry=makeEntry(selectedDate);
       loadAll();
       renderHistory();renderInsights();renderCalendar();
-      toast(`Imported ${Object.keys(imported).length} days!`);
+      toast('Imported '+Object.keys(imported).length+' days!');
     }catch(err){toast('❌ Invalid JSON file');}
   };
   reader.readAsText(file);
 };
 
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.view===name));
-  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('active',x.dataset.view===name);});
+  document.querySelectorAll('.view').forEach(function(x){x.classList.remove('active');});
   document.getElementById('view-'+name).classList.add('active');
   if(name==='history')renderHistory();
   if(name==='insights')renderInsights();
   if(name==='calendar')renderCalendar();
   if(name==='sync')loadSyncUI();
 }
-document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.view));
+document.querySelectorAll('.tab').forEach(function(t){t.onclick=function(){switchTab(t.dataset.view);};});
 
 // ---------- GIST SYNC ----------
 function getToken(){return localStorage.getItem(TOKEN_KEY)||'';}
@@ -641,25 +678,25 @@ function loadSyncUI(){
   else setSyncStatus('Not configured');
 }
 
-document.getElementById('saveTokenBtn').onclick=()=>{
+document.getElementById('saveTokenBtn').onclick=function(){
   const t=document.getElementById('ghToken').value.trim();
   if(!t){toast('Paste a token first');return;}
   localStorage.setItem(TOKEN_KEY,t);
   toast('Token saved 🔒');loadSyncUI();
 };
-document.getElementById('ghGistId').onchange=e=>{
+document.getElementById('ghGistId').onchange=function(e){
   localStorage.setItem(GIST_KEY,e.target.value.trim());
   loadSyncUI();
 };
 
-document.getElementById('createGistBtn').onclick=async()=>{
+document.getElementById('createGistBtn').onclick=async function(){
   const token=getToken();
   if(!token){toast('Save your token first');return;}
   setSyncStatus('Creating…','syncing');
   try{
     const res=await fetch('https://api.github.com/gists',{
       method:'POST',
-      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'},
+      headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'},
       body:JSON.stringify({
         description:'🩸 Cycle & Migraine Tracker backup',
         public:false,
@@ -672,21 +709,21 @@ document.getElementById('createGistBtn').onclick=async()=>{
     document.getElementById('ghGistId').value=gist.id;
     setSyncStatus('Created ✓','ok');
     toast('Gist created! Now use Push/Pull');
-    document.getElementById('syncInfo').innerHTML=`Gist ID: <code>${gist.id}</code>`;
+    document.getElementById('syncInfo').innerHTML='Gist ID: <code>'+gist.id+'</code>';
   }catch(err){
     setSyncStatus('Error','err');
     toast('❌ '+(err.message||'Create failed').slice(0,80));
   }
 };
 
-document.getElementById('pushBtn').onclick=async()=>{
+document.getElementById('pushBtn').onclick=async function(){
   const token=getToken(),gistId=getGistId();
   if(!token||!gistId){toast('Save token + create/get gist first');return;}
   setSyncStatus('Pushing…','syncing');
   try{
-    const res=await fetch(`https://api.github.com/gists/${gistId}`,{
+    const res=await fetch('https://api.github.com/gists/'+gistId,{
       method:'PATCH',
-      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'},
+      headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'},
       body:JSON.stringify({files:{'cycle-migraine-data.json':{content:JSON.stringify(data,null,2)}}})
     });
     if(!res.ok)throw new Error(await res.text());
@@ -701,22 +738,22 @@ document.getElementById('pushBtn').onclick=async()=>{
   }
 };
 
-document.getElementById('pullBtn').onclick=async()=>{
+document.getElementById('pullBtn').onclick=async function(){
   const token=getToken(),gistId=getGistId();
   if(!token||!gistId){toast('Save token + create/get gist first');return;}
   if(!confirm('Pull will merge remote data into local. Continue?'))return;
   setSyncStatus('Pulling…','syncing');
   try{
-    const res=await fetch(`https://api.github.com/gists/${gistId}`,{
-      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'}
+    const res=await fetch('https://api.github.com/gists/'+gistId,{
+      headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'}
     });
     if(!res.ok)throw new Error(await res.text());
     const gist=await res.json();
     const file=gist.files['cycle-migraine-data.json'];
     if(!file){throw new Error('No data file in gist');}
-    const remoteContent=await fetch(file.raw_url).then(r=>r.text());
+    const remoteContent=await fetch(file.raw_url).then(function(r){return r.text();});
     const remote=JSON.parse(remoteContent);
-    const merged={...data,...remote};
+    const merged=Object.assign({},data,remote);
     data=merged;
     localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
     entry=makeEntry(selectedDate);
@@ -732,13 +769,13 @@ document.getElementById('pullBtn').onclick=async()=>{
   }
 };
 
-document.getElementById('wipeBtn').onclick=()=>{
+document.getElementById('wipeBtn').onclick=function(){
   if(!confirm('Erase ALL local data on this device? This cannot be undone.'))return;
   if(!confirm('Really sure? Export or push to Gist first!'))return;
   localStorage.removeItem(STORAGE_KEY);
   data={};
-  entry={...BLANK};
   selectedDate=today;
+  entry=makeEntry(today);
   datePicker.value=today;
   updateDateHeader();
   loadAll();
@@ -755,8 +792,8 @@ renderCalendar();
 
 // ---------- SERVICE WORKER (PWA offline) ----------
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
   });
 }
 </script>
