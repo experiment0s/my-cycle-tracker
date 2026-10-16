@@ -37,8 +37,8 @@ header p{margin:4px 0 0;opacity:.9;font-size:.85rem}
 .water-glass.active{opacity:1;transform:scale(1.1)}
 input[type="range"]{width:100%;accent-color:var(--pink)}
 .slider-label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-bottom:4px}
-textarea,input[type="text"],input[type="password"]{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:60px;outline:none}
-input[type="text"],input[type="password"]{min-height:0}
+textarea,input[type="text"],input[type="password"],input[type="date"]{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:60px;outline:none;background:#fff;color:var(--text)}
+input[type="text"],input[type="password"],input[type="date"]{min-height:0}
 textarea:focus,input:focus{border-color:var(--pink)}
 .save-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px;box-shadow:0 4px 12px rgba(233,30,99,.3)}
 .save-btn:active{transform:scale(.98)}
@@ -81,6 +81,10 @@ details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:
 .hint a{color:var(--purple)}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:12px 20px;border-radius:20px;font-size:.85rem;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
+.date-bar{display:flex;gap:8px;align-items:center}
+.date-bar input{flex:1}
+.date-bar button{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--purple);font-weight:600;cursor:pointer;font-size:.85rem;white-space:nowrap}
+.editing-banner{display:none;margin-top:8px;padding:8px 12px;background:#fff3e0;border-radius:8px;font-size:.8rem;color:#e65100}
 </style>
 </head>
 <body>
@@ -99,6 +103,15 @@ details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:
 </div>
 
 <div class="view active" id="view-log">
+  <div class="card" style="padding:12px;margin-top:12px">
+    <label style="font-size:.8rem;color:var(--muted);display:block;margin-bottom:6px">📅 Date</label>
+    <div class="date-bar">
+      <input type="date" id="datePicker">
+      <button id="todayBtn">Today</button>
+    </div>
+    <div class="editing-banner" id="editingBanner"></div>
+  </div>
+
   <div class="day-header" id="dayHeader"></div>
 
   <div class="card">
@@ -143,11 +156,13 @@ details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:
   </div>
 
   <div class="card">
-    <h3>😊 Mood & Energy</h3>
+    <h3>😊 Mood, Energy & Stress</h3>
     <div class="slider-label"><span>Mood</span><span id="moodVal">5</span></div>
     <input type="range" id="mood" min="0" max="10" value="5">
     <div class="slider-label" style="margin-top:12px"><span>Energy</span><span id="energyVal">5</span></div>
     <input type="range" id="energy" min="0" max="10" value="5">
+    <div class="slider-label" style="margin-top:12px"><span>Stress</span><span id="stressVal">5</span></div>
+    <input type="range" id="stress" min="0" max="10" value="5">
     <div class="slider-label" style="margin-top:12px"><span>Sleep quality</span><span id="sleepVal">5</span></div>
     <input type="range" id="sleep" min="0" max="10" value="5">
   </div>
@@ -161,7 +176,7 @@ details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:
 </div>
 
 <div class="view" id="view-calendar">
-  <div class="card">
+  <div class="card" style="margin-top:12px">
     <div class="cal-header">
       <button class="cal-nav" id="calPrev">◀</button>
       <span class="cal-title" id="calTitle"></span>
@@ -177,12 +192,12 @@ details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:
   </div>
   <div class="card">
     <h3>🔍 Legend</h3>
-    <p class="hint">Tap any day to jump to it in the Log tab. Purple border = today.</p>
+    <p class="hint">Tap any past day to edit it in the Log tab. Purple border = today. Future dates can't be edited.</p>
   </div>
 </div>
 
 <div class="view" id="view-history">
-  <div class="card">
+  <div class="card" style="margin-top:12px">
     <h3>📅 Recent Entries</h3>
     <div id="historyList"></div>
   </div>
@@ -194,7 +209,7 @@ details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:
 </div>
 
 <div class="view" id="view-insights">
-  <div class="card">
+  <div class="card" style="margin-top:12px">
     <h3>🔮 Predictions</h3>
     <div id="predictions"></div>
   </div>
@@ -210,10 +225,14 @@ details summary{cursor:pointer;font-size:.85rem;color:var(--purple);font-weight:
     <h3>🩸 Cycle vs Headache</h3>
     <div id="cycleCorrelation" class="empty">Need more data</div>
   </div>
+  <div class="card">
+    <h3>😰 Stress vs Headache</h3>
+    <div id="stressCorrelation" class="empty">Log a few days with stress to see patterns</div>
+  </div>
 </div>
 
 <div class="view" id="view-sync">
-  <div class="card">
+  <div class="card" style="margin-top:12px">
     <h3>☁️ GitHub Gist Sync</h3>
     <p class="hint">Back up to a <strong>secret</strong> GitHub Gist and sync across devices. Your token stays in this browser only.</p>
     <details>
@@ -261,9 +280,17 @@ const STORAGE_KEY='cycleMigraineTracker';
 const TOKEN_KEY='cycleMigraineTracker_token';
 const GIST_KEY='cycleMigraineTracker_gistId';
 const today=new Date().toISOString().slice(0,10);
+const BLANK={cycle:'none',cramps:0,pain:0,headLocations:[],headSymptoms:[],headTriggers:[],meds:'',water:0,cravings:[],mood:5,energy:5,stress:5,sleep:5,notes:''};
 
 let data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
-let entry=data[today]||{cycle:'none',cramps:0,pain:0,headLocations:[],headSymptoms:[],headTriggers:[],meds:'',water:0,cravings:[],mood:5,energy:5,sleep:5,notes:''};
+let selectedDate=today;
+let entry=makeEntry(selectedDate);
+
+function makeEntry(dateStr){
+  const stored=data[dateStr];
+  if(stored){return {...BLANK,...stored};}
+  return {...BLANK};
+}
 
 const HEAD_LOCATIONS=['Front','Back','Left','Right','Behind eyes','Temples','Neck','Whole head'];
 const HEAD_SYMPTOMS=['Nausea','Aura','Light sensitivity','Sound sensitivity','Dizziness','Vomiting','Fatigue','Blurred vision'];
@@ -274,7 +301,19 @@ let toastTimer;
 function toast(msg,ms=2000){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),ms);}
 
 document.getElementById('todayLabel').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
-document.getElementById('dayHeader').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+function updateDateHeader(){
+  const d=new Date(selectedDate+'T12:00:00');
+  document.getElementById('dayHeader').textContent=d.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const banner=document.getElementById('editingBanner');
+  if(selectedDate===today){
+    banner.style.display='none';
+  }else{
+    banner.style.display='block';
+    const label=selectedDate>today?'Future date':'Past date';
+    banner.textContent=`⚠️ Editing ${label} — Save will store to ${selectedDate}`;
+  }
+}
 
 const painScale=document.getElementById('painScale');
 for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='pain-btn';b.textContent=i;b.dataset.pain=i;b.onclick=()=>{entry.pain=i;updatePain();};painScale.appendChild(b);}
@@ -301,7 +340,7 @@ for(let i=0;i<8;i++){
   waterRow.appendChild(g);
 }
 
-['cramps','mood','energy','sleep'].forEach(id=>{
+['cramps','mood','energy','stress','sleep'].forEach(id=>{
   const el=document.getElementById(id);
   el.oninput=()=>{entry[id]=+el.value;document.getElementById(id+'Val').textContent=el.value;};
 });
@@ -333,20 +372,47 @@ function loadChips(){
 }
 function loadAll(){
   updateCycle();updatePain();updateWater();loadChips();
-  ['cramps','mood','energy','sleep'].forEach(id=>{document.getElementById(id).value=entry[id];document.getElementById(id+'Val').textContent=entry[id];});
+  ['cramps','mood','energy','stress','sleep'].forEach(id=>{document.getElementById(id).value=entry[id];document.getElementById(id+'Val').textContent=entry[id];});
   document.getElementById('meds').value=entry.meds;
   document.getElementById('notes').value=entry.notes;
 }
+
+function updateSaveBtnLabel(){
+  document.getElementById('saveBtn').textContent=selectedDate===today?'💾 Save Today':'💾 Save Entry';
+}
+
+// Date picker setup
+const datePicker=document.getElementById('datePicker');
+datePicker.value=selectedDate;
+datePicker.max=today;
+datePicker.onchange=e=>{
+  if(e.target.value>today){toast("Can't edit future dates");e.target.value=today;return;}
+  loadDate(e.target.value);
+};
+document.getElementById('todayBtn').onclick=()=>loadDate(today);
+
+function loadDate(dateStr){
+  selectedDate=dateStr;
+  entry=makeEntry(dateStr);
+  datePicker.value=dateStr;
+  updateDateHeader();
+  loadAll();
+  updateSaveBtnLabel();
+}
+
+updateDateHeader();
 loadAll();
+updateSaveBtnLabel();
 
 document.getElementById('saveBtn').onclick=()=>{
-  data[today]=entry;
+  data[selectedDate]=entry;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
   const btn=document.getElementById('saveBtn');
+  const wasToday=selectedDate===today;
   btn.textContent='✅ Saved!';
-  setTimeout(()=>btn.textContent='💾 Save Today',1500);
+  setTimeout(()=>btn.textContent=wasToday?'💾 Save Today':'💾 Save Entry',1500);
   renderHistory();renderInsights();renderCalendar();
-  toast('Saved!');
+  toast(wasToday?'Saved!':`Saved ${selectedDate}`);
 };
 
 function renderHistory(){
@@ -355,15 +421,23 @@ function renderHistory(){
   if(!days.length){list.innerHTML='<div class="empty">No entries yet</div>';return;}
   list.innerHTML=days.map(d=>{
     const e=data[d];const bits=[];
-    if(e.cycle!=='none')bits.push(`🩸 ${e.cycle}`);
+    if(e.cycle&&e.cycle!=='none')bits.push(`🩸 ${e.cycle}`);
     if(e.cramps>0)bits.push(`cramps ${e.cramps}/10`);
     if(e.pain>0)bits.push(`🤕 pain ${e.pain}/10`);
     if(e.water)bits.push(`💧 ${e.water}`);
-    if(e.cravings.length)bits.push(`🍫 ${e.cravings.join(', ')}`);
-    if(e.headTriggers.length)bits.push(`⚡ ${e.headTriggers.join(', ')}`);
-    if(e.mood!==5)bits.push(`mood ${e.mood}`);
-    return `<div class="hist-item"><div class="date">${new Date(d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div><div class="tags">${bits.join(' • ')||'No notable data'}</div></div>`;
+    if(e.cravings&&e.cravings.length)bits.push(`🍫 ${e.cravings.join(', ')}`);
+    if(e.headTriggers&&e.headTriggers.length)bits.push(`⚡ ${e.headTriggers.join(', ')}`);
+    if(e.mood!==undefined&&e.mood!==5)bits.push(`mood ${e.mood}`);
+    if(e.stress!==undefined&&e.stress!==5)bits.push(`stress ${e.stress}`);
+    return `<div class="hist-item" data-date="${d}" style="cursor:pointer"><div class="date">${new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div><div class="tags">${bits.join(' • ')||'No notable data'}</div></div>`;
   }).join('');
+  list.querySelectorAll('.hist-item').forEach(el=>{
+    el.onclick=()=>{
+      loadDate(el.dataset.date);
+      switchTab('log');
+      toast(`Editing ${el.dataset.date}`);
+    };
+  });
 }
 
 function renderInsights(){
@@ -372,11 +446,13 @@ function renderInsights(){
   const headacheDays=days.filter(d=>d.pain>0).length;
   const periodDays=days.filter(d=>['light','medium','heavy','spotting'].includes(d.cycle)).length;
   const avgWater=days.length?(days.reduce((s,d)=>s+d.water,0)/days.length).toFixed(1):0;
+  const stressDays=days.filter(d=>d.stress!==undefined&&d.stress>=7).length;
   grid.innerHTML=`
     <div class="stat"><div class="num">${days.length}</div><div class="label">Days logged</div></div>
     <div class="stat"><div class="num">${headacheDays}</div><div class="label">Headache days</div></div>
     <div class="stat"><div class="num">${periodDays}</div><div class="label">Period days</div></div>
-    <div class="stat"><div class="num">${avgWater}</div><div class="label">Avg 💧/day</div></div>`;
+    <div class="stat"><div class="num">${avgWater}</div><div class="label">Avg 💧/day</div></div>
+    <div class="stat"><div class="num">${stressDays}</div><div class="label">High-stress days</div></div>`;
   const trigCount={};
   days.forEach(d=>d.headTriggers.forEach(t=>trigCount[t]=(trigCount[t]||0)+1));
   const top=Object.entries(trigCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -392,7 +468,36 @@ function renderInsights(){
   }else{
     corr.innerHTML='<div class="empty">Need more data (3+ headache days)</div>';
   }
+  renderStressCorrelation();
   renderPredictions();
+}
+
+function headPct(arr){
+  if(!arr.length)return 0;
+  return Math.round(arr.filter(d=>d.pain>0).length/arr.length*100);
+}
+function renderStressCorrelation(){
+  const el=document.getElementById('stressCorrelation');
+  if(!el)return;
+  const days=Object.values(data).filter(d=>d.stress!==undefined);
+  if(days.length<3){el.innerHTML='<div class="empty">Log a few days with stress to see patterns</div>';return;}
+  const high=days.filter(d=>d.stress>=7);
+  const low=days.filter(d=>d.stress<=3);
+  if(high.length<2||low.length<2){
+    el.innerHTML='<div class="empty">Need 2+ high-stress and 2+ low-stress days</div>';
+    return;
+  }
+  const highH=headPct(high),lowH=headPct(low);
+  const diff=highH-lowH;
+  const verdict=diff>15?'💡 Headaches are more common on high-stress days'
+    :diff<-15?'💡 Headaches are more common on low-stress days'
+    :'💡 No clear link between stress and headaches yet';
+  el.innerHTML=`
+    <div class="stat-grid">
+      <div class="stat"><div class="num">${highH}%</div><div class="label">Headache rate on high-stress days</div></div>
+      <div class="stat"><div class="num">${lowH}%</div><div class="label">Headache rate on low-stress days</div></div>
+    </div>
+    <p class="hint" style="margin-top:10px;text-align:center">${verdict}</p>`;
 }
 
 function renderPredictions(){
@@ -410,7 +515,7 @@ function renderPredictions(){
   }
   periods.push(current);
   if(periods.length<2){
-    el.innerHTML=`<div class="prediction"><div class="pred-label">Current cycle</div><div class="pred-value">Started ${new Date(periods[periods.length-1][0]).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div><div class="pred-sub">Log another period to unlock cycle-length predictions</div></div>`;
+    el.innerHTML=`<div class="prediction"><div class="pred-label">Current cycle</div><div class="pred-value">Started ${new Date(periods[periods.length-1][0]+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div><div class="pred-sub">Log another period to unlock cycle-length predictions</div></div>`;
     return;
   }
   const cycleLengths=[];
@@ -420,7 +525,7 @@ function renderPredictions(){
     cycleLengths.push(Math.round((b-a)/(1000*60*60*24)));
   }
   const avg=Math.round(cycleLengths.reduce((s,n)=>s+n,0)/cycleLengths.length);
-  const lastStart=new Date(periods[periods.length-1][0]);
+  const lastStart=new Date(periods[periods.length-1][0]+'T12:00:00');
   const nextStart=new Date(lastStart);nextStart.setDate(nextStart.getDate()+avg);
   const ovulation=new Date(nextStart);ovulation.setDate(ovulation.getDate()-14);
   const fertileStart=new Date(ovulation);fertileStart.setDate(fertileStart.getDate()-5);
@@ -432,6 +537,8 @@ function renderPredictions(){
     <div class="prediction"><div class="pred-label">Next period</div><div class="pred-value">${fmt(nextStart)}</div><div class="pred-sub">${daysUntil>0?`in ${daysUntil} day${daysUntil>1?'s':''}`:daysUntil===0?'today':`${-daysUntil} day${daysUntil<-1?'s':''} late`}</div></div>
     <div class="prediction"><div class="pred-label">Fertile window</div><div class="pred-value">${fmt(fertileStart)} – ${fmt(fertileEnd)}</div><div class="pred-sub">Ovulation around ${fmt(ovulation)}</div></div>`;
 }
+
+let calDate=new Date();
 
 function renderCalendar(){
   const grid=document.getElementById('calGrid');
@@ -466,15 +573,17 @@ function renderCalendar(){
       if(rec.water>0){const dot=document.createElement('span');dot.className='dot';dot.style.background='#2196f3';el.appendChild(dot);}
     }
     if(ds===todayStr)el.classList.add('today');
+    if(ds===selectedDate&&ds!==todayStr)el.style.outline='2px solid var(--pink)';
     el.onclick=()=>{
-      if(ds===todayStr){switchTab('log');toast('Jumped to today');return;}
-      toast(`Editing ${ds} isn't supported yet — only today can be edited`,'2500');
+      if(ds>todayStr){toast("Can't edit future dates");return;}
+      loadDate(ds);
+      switchTab('log');
+      toast(ds===todayStr?'Jumped to today':`Editing ${ds}`);
     };
     grid.appendChild(el);
   }
 }
 
-let calDate=new Date();
 document.getElementById('calPrev').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderCalendar();};
 document.getElementById('calNext').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderCalendar();};
 
@@ -496,8 +605,9 @@ document.getElementById('importFile').onchange=e=>{
       const merged={...data,...imported};
       data=merged;
       localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-      entry=data[today]||entry;
-      loadAll();renderHistory();renderInsights();renderCalendar();
+      entry=makeEntry(selectedDate);
+      loadAll();
+      renderHistory();renderInsights();renderCalendar();
       toast(`Imported ${Object.keys(imported).length} days!`);
     }catch(err){toast('❌ Invalid JSON file');}
   };
@@ -609,8 +719,9 @@ document.getElementById('pullBtn').onclick=async()=>{
     const merged={...data,...remote};
     data=merged;
     localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-    entry=data[today]||entry;
-    loadAll();renderHistory();renderInsights();renderCalendar();
+    entry=makeEntry(selectedDate);
+    loadAll();
+    renderHistory();renderInsights();renderCalendar();
     const now=new Date().toLocaleString();
     setSyncStatus('Pulled ✓','ok');
     toast('Pulled from Gist!');
@@ -626,8 +737,13 @@ document.getElementById('wipeBtn').onclick=()=>{
   if(!confirm('Really sure? Export or push to Gist first!'))return;
   localStorage.removeItem(STORAGE_KEY);
   data={};
-  entry={cycle:'none',cramps:0,pain:0,headLocations:[],headSymptoms:[],headTriggers:[],meds:'',water:0,cravings:[],mood:5,energy:5,sleep:5,notes:''};
-  loadAll();renderHistory();renderInsights();renderCalendar();
+  entry={...BLANK};
+  selectedDate=today;
+  datePicker.value=today;
+  updateDateHeader();
+  loadAll();
+  updateSaveBtnLabel();
+  renderHistory();renderInsights();renderCalendar();
   toast('Local data wiped');
 };
 
